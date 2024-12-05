@@ -17,5 +17,7 @@ fun main() {
     // Read the input from the `src/Day01.txt` file.
     val input = readInput("Day05")
     part1(input).println()
+
+    check(part2(testInput) == 1) // TODO note that the test input might be different
     part2(input).println()
 }
