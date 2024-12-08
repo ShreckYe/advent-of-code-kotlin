@@ -38,13 +38,13 @@ fun main() {
             .mapValues { it.value.map { it.second } }
 
 
-        val ans = (0 until m).sumOf {ani ->
+        val ans = (0 until m).sumOf { ani ->
             (0 until n).count { anj ->
                 antennaLocationMap.values.any {
                     it.any { a1 ->
                         it.any { a2 ->
-                             a1 !== a2 &&
-                                     (ani - a1.first) * (anj - a2.second) == (ani - a2.first) * (anj - a1.second)
+                            a1 !== a2 &&
+                                    (ani - a1.first) * (anj - a2.second) == (ani - a2.first) * (anj - a1.second)
                         }
                     }
                 }
