@@ -104,16 +104,22 @@ fun main() {
 
             //println(spaces.map { with(it) { "($startingIndex, $length, ${this.id})" } })
 
-            // TODO move to end if OK
+            /*
+            It actually works in here that the file is moved to a free space first before merging the file's space with its neighbors.
+            If the free space to move to is the same as the file's left neighbor. Then removing the file and merging the free spaces first leads to the incorrect result.
+            Therefore, the code below can't be moved to the end
+             */
+
             val (freeI, free) = indexedFree
             //println("free: $free")
             spaces[freeI] = free.copy(
                 startingIndex = free.startingIndex + file.length,
                 length = free.length - file.length
             )
-            // TODO remove if length 0
-            //spaces.add(freeI, file.copy(startingIndex = free.startingIndex)) // ConcurrentModificationException
+            // Removing if length is 0 is difficult to implement without `ConcurrentModificationException`.
+            //spaces.add(freeI, file.copy(startingIndex = free.startingIndex)) // `ConcurrentModificationException`
             movedFiles.add(file.copy(startingIndex = free.startingIndex))
+
 
             fun <T> MutableListIterator<T>.getAndRemovePrevious() =
                 if (hasPrevious()/*hasPrevious().also { previous() } && hasPrevious()*/)
@@ -168,6 +174,6 @@ fun main() {
     val input = readInput("Day09")
     part1(input).println()
 
-    check(part2(testInput)/*.also { println(it) }*/ == 2858L) // TODO note that the test input might be different
+    check(part2(testInput)/*.also { println(it) }*/ == 2858L)
     part2(input).println()
 }
