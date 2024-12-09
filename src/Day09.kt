@@ -49,7 +49,7 @@ fun main() {
     fun part2(input: List<String>): Long {
         data class WholeSpace(val startingIndex: Int, val length: Int, val id: Int?)
 
-        val spaces = LinkedList<WholeSpace>() // TODO try `MutableList`
+        val spaces = ArrayList<WholeSpace>() // `ArrayList` works too.
         //val wholeFiles = mutableListOf<WholeSpace>()
         //val freeSpaces = mutableListOf<WholeSpace>()
 
