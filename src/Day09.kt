@@ -96,7 +96,8 @@ fun main() {
                 continue
 
             val indexedFree =
-                spaces.takeWhile { it.startingIndex < file.startingIndex }.withIndex().firstOrNull { (_, free) -> free.id === null && free.length >= file.length }
+                spaces.takeWhile { it.startingIndex < file.startingIndex }.withIndex()
+                    .firstOrNull { (_, free) -> free.id === null && free.length >= file.length }
             if (indexedFree === null)
                 continue
 
@@ -112,7 +113,7 @@ fun main() {
             )
             // TODO remove if length 0
             //spaces.add(freeI, file.copy(startingIndex = free.startingIndex)) // ConcurrentModificationException
-           movedFiles.add( file.copy(startingIndex = free.startingIndex))
+            movedFiles.add(file.copy(startingIndex = free.startingIndex))
 
             fun <T> MutableListIterator<T>.getAndRemovePrevious() =
                 if (hasPrevious()/*hasPrevious().also { previous() } && hasPrevious()*/)
