@@ -101,11 +101,11 @@ fun main() {
                 continue
 
 
-            println(spaces.map { with(it) { "($startingIndex, $length, ${this.id})" } })
+            //println(spaces.map { with(it) { "($startingIndex, $length, ${this.id})" } })
 
             // TODO move to end if OK
             val (freeI, free) = indexedFree
-            println("free: $free")
+            //println("free: $free")
             spaces[freeI] = free.copy(
                 startingIndex = free.startingIndex + file.length,
                 length = free.length - file.length
@@ -117,7 +117,7 @@ fun main() {
             fun <T> MutableListIterator<T>.getAndRemovePrevious() =
                 if (hasPrevious()/*hasPrevious().also { previous() } && hasPrevious()*/)
                     previous().also {
-                        println("previous: $it")
+                        //println("previous: $it")
                         remove()
                         //next()
                     }
@@ -126,14 +126,14 @@ fun main() {
             fun <T> MutableListIterator<T>.getAndRemoveNext() =
                 if (hasNext())
                     next().also {
-                        println("next: $it")
+                        //println("next: $it")
                         remove()
                         //previous()
                     }
                 else null
 
             iterator.remove() // remove current first
-            println("current: $file")
+            //println("current: $file")
             var newFreeLength = 0
             iterator.getAndRemovePrevious()?.let {
                 newFreeLength += it.length
@@ -167,6 +167,6 @@ fun main() {
     val input = readInput("Day09")
     part1(input).println()
 
-    check(part2(testInput).also { println(it) } == 2858L) // TODO note that the test input might be different
+    check(part2(testInput)/*.also { println(it) }*/ == 2858L) // TODO note that the test input might be different
     part2(input).println()
 }
