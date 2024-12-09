@@ -95,24 +95,35 @@ fun main() {
             if (file.id === null)
                 continue
 
-            val indexedFree =
-                spaces.takeWhile { it.startingIndex < file.startingIndex }.withIndex().firstOrNull { (_, free) -> free.id === null && free.length >= file.length }
-            if (indexedFree === null)
+            val freeIterator = spaces.listIterator()
+            var free: WholeSpace? = null
+            while (freeIterator.hasNext()) {
+                val freeCandidate = freeIterator.next()
+                if (freeCandidate.startingIndex >= file.startingIndex)
+                    break
+                if (freeCandidate.id === null && freeCandidate.length >= file.length) {
+                    free = freeCandidate
+                    break
+                }
+            }
+            if (free === null)
                 continue
-
 
             //println(spaces.map { with(it) { "($startingIndex, $length, ${this.id})" } })
 
             // TODO move to end if OK
-            val (freeI, free) = indexedFree
             //println("free: $free")
-            spaces[freeI] = free.copy(
+            val newFree = free.copy(
                 startingIndex = free.startingIndex + file.length,
                 length = free.length - file.length
             )
-            // TODO remove if length 0
+            if (newFree.length != 0)
+                freeIterator.set(newFree)
+            else
+                freeIterator.remove() // causes the `iterator.remove` below to throw `ConcurrentModificationException`
+
             //spaces.add(freeI, file.copy(startingIndex = free.startingIndex)) // ConcurrentModificationException
-           movedFiles.add( file.copy(startingIndex = free.startingIndex))
+            movedFiles.add(file.copy(startingIndex = free.startingIndex))
 
             fun <T> MutableListIterator<T>.getAndRemovePrevious() =
                 if (hasPrevious()/*hasPrevious().also { previous() } && hasPrevious()*/)
