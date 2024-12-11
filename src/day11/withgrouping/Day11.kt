@@ -1,6 +1,10 @@
+package day11.withgrouping
+
+import println
+import readInput
 import java.math.BigInteger
 
-fun BigInteger.blink(): List<BigInteger> {
+fun BigInteger.blinkToList(): List<BigInteger> {
     val stoneString = toString()
     val length = stoneString.length
     return when {
@@ -14,11 +18,21 @@ fun BigInteger.blink(): List<BigInteger> {
     }
 }
 
-fun List<BigInteger>.blink(): List<BigInteger> =
-    flatMap { stone -> stone.blink() }
+fun List<BigInteger>.listToGrouping() =
+    groupingBy { it }.eachCount()
 
-fun BigInteger.nBlinks(memoizationCache: Array<HashMap<BigInteger, List<BigInteger>>>, n: Int): List<BigInteger> =
-    if (n == 0) listOf(this)
+fun BigInteger.blink(): Map<BigInteger, Int> =
+    blinkToList().listToGrouping()
+
+fun Map<BigInteger, Int>.blink() =
+    asSequence().map { (stone, count) -> stone.blink().mapValues { it.value * count } }
+        .reduce { a, b -> a + b }
+
+fun BigInteger.nBlinks(
+    memoizationCache: Array<HashMap<BigInteger, Map<BigInteger, Int>>>,
+    n: Int
+): Map<BigInteger, Int> =
+    if (n == 0) mapOf(this to 1)
     else {
         val cachedStones = memoizationCache[n][this]
         cachedStones ?: if (n == 1) blink()
@@ -37,7 +51,10 @@ fun BigInteger.nBlinks(memoizationCache: Array<HashMap<BigInteger, List<BigInteg
     println("n = $n: $it")
 }*/
 
-fun List<BigInteger>.nBlinks(memoizationCache: Array<HashMap<BigInteger, List<BigInteger>>>, n: Int): List<BigInteger> =
+fun Map<BigInteger, Int>.nBlinks(
+    memoizationCache: Array<HashMap<BigInteger, Map<BigInteger, Int>>>,
+    n: Int
+): Map<BigInteger, Int> =
     flatMap { it.nBlinks(memoizationCache, n) }
 
 fun main() {
@@ -55,7 +72,7 @@ fun main() {
     }
 
     fun memoizationCache39() =
-        Array<HashMap<BigInteger, List<BigInteger>>>(39) { HashMap() }
+        Array<HashMap<BigInteger, Map<BigInteger, Int>>>(39) { HashMap() }
 
     fun part2(input: List<String>): Long {
         val stones = process(input)

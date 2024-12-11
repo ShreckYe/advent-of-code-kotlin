@@ -1,23 +1,26 @@
-import java.math.BigInteger
+package day11.withlong
 
-fun BigInteger.blink(): List<BigInteger> {
+import println
+import readInput
+
+fun Long.blink(): List<Long> {
     val stoneString = toString()
     val length = stoneString.length
     return when {
-        this == BigInteger.ZERO -> listOf(BigInteger.ONE)
+        this == 0L -> listOf(1L)
         length % 2 == 0 -> listOf(
-            stoneString.substring(0, length / 2).toBigInteger(),
-            stoneString.substring(length / 2, length).toBigInteger()
+            stoneString.substring(0, length / 2).toLong(),
+            stoneString.substring(length / 2, length).toLong()
         )
 
-        else -> listOf(this * 2024.toBigInteger())
+        else -> listOf(this * 2024.toLong())
     }
 }
 
-fun List<BigInteger>.blink(): List<BigInteger> =
+fun List<Long>.blink(): List<Long> =
     flatMap { stone -> stone.blink() }
 
-fun BigInteger.nBlinks(memoizationCache: Array<HashMap<BigInteger, List<BigInteger>>>, n: Int): List<BigInteger> =
+fun Long.nBlinks(memoizationCache: Array<HashMap<Long, List<Long>>>, n: Int): List<Long> =
     if (n == 0) listOf(this)
     else {
         val cachedStones = memoizationCache[n][this]
@@ -37,12 +40,12 @@ fun BigInteger.nBlinks(memoizationCache: Array<HashMap<BigInteger, List<BigInteg
     println("n = $n: $it")
 }*/
 
-fun List<BigInteger>.nBlinks(memoizationCache: Array<HashMap<BigInteger, List<BigInteger>>>, n: Int): List<BigInteger> =
+fun List<Long>.nBlinks(memoizationCache: Array<HashMap<Long, List<Long>>>, n: Int): List<Long> =
     flatMap { it.nBlinks(memoizationCache, n) }
 
 fun main() {
     fun process(input: List<String>) =
-        input.single().splitToSequence(' ').map { it.toBigInteger() }.toList()
+        input.single().splitToSequence(' ').map { it.toLong() }.toList()
 
     fun part1(input: List<String>): Int {
         var stones = process(input)
@@ -55,7 +58,7 @@ fun main() {
     }
 
     fun memoizationCache39() =
-        Array<HashMap<BigInteger, List<BigInteger>>>(39) { HashMap() }
+        Array<HashMap<Long, List<Long>>>(39) { HashMap() }
 
     fun part2(input: List<String>): Long {
         val stones = process(input)
@@ -93,7 +96,7 @@ fun main() {
     val input = readInput("Day11")
     part1(input).println()
 
-    var stones = listOf(BigInteger.ZERO)
+    var stones = listOf(0L)
     println(stones.size)
     repeat(40) {
         stones = stones.blink()
@@ -101,7 +104,7 @@ fun main() {
         println("${it + 1} times: " + stones.size)
     }
     val memoizationCache = memoizationCache39()
-    println(BigInteger.ZERO.nBlinks(memoizationCache, 38).size)
+    println(0L.nBlinks(memoizationCache, 38).size)
     println("memoization cache sizes: ${memoizationCache.map { it.size }}")
     check(process(input).nBlinks(memoizationCache, 25).size == 204022)
 
