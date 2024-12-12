@@ -63,7 +63,13 @@ fun main() {
         //println(allRoots.map { rootRegions.getValue(it) })
 
         //return rootRegions.values.distinct().sumOf { it.area * it.perimeter }
-        return allRoots.sumOf { rootRegions.getValue(it).run { area * perimeter } }
+        return allRoots.sumOf { p ->
+            rootRegions.getValue(p).run {
+                (area * perimeter)/*.also {
+                    println("${with(p) { input[i][j] }}: $area * $perimeter = $it")
+                }*/
+            }
+        }//.also { println() }
     }
 
     data class PlotSide(val p: Position, val d: Direction)
@@ -82,11 +88,11 @@ fun main() {
 
             override var Position.parent: Position?
                 get() = parents[i][j].also {
-                    if (this == p10)
-                        println("$this's parent: $it")
+                    /*if (this == p10)
+                        println("$this's parent: $it")*/
                 }
                 set(value) {
-                    println("Set $this's parent to $value")
+                    //println("Set $this's parent to $value")
                     /*if (this == p10 && value == p10)
                         throw Throwable() //Thread.dumpStack()*/
                     parents[i][j] = value
@@ -104,110 +110,50 @@ fun main() {
                         plotUnionFind.unionIfNeeded(neighborP, p)
             }
 
-        println("$p10's parent before getting all elements: ${with(plotUnionFind) { p10.parent }}")
+        //println("$p10's parent before getting all elements: ${with(plotUnionFind) { p10.parent }}")
 
         val ans = plotUnionFind.sets().sumOf { ps ->
-            val firstP = ps.first()
-            println("Set with ${input[firstP.i][firstP.j]}")
+            // see commit 2fc3feb3538b758957271330d02799a4d942ff75 for an incorrect solution using a union find here
 
-            println(ps)
-            println(ps.sorted())
-            assert(ps.sorted() == ps)
-
-            val sideUnionFind = object : UnionFind<PlotSide> {
-                /**
-                 * Whether it's in the map indicates whether it's counted, whether it's not null indicates whether it has a parent.
-                 */
-                val parents = Array(m) { Array<EnumMap<Direction, PlotSide?>?>(n) { null } }.apply {
+            val positionSetsBySideDirectionByPosition =
+                Array(m) { Array<EnumMap<Direction, MutableSet<Position>>?>(n) { null } }.apply {
                     for (p in ps)
-                        this[p.i][p.j] = EnumMap<Direction, PlotSide?>(Direction::class.java)
-                }
-
-                fun has(plotSide: PlotSide) =
-                    with(plotSide) {
-                        println("Has $plotSide ${input[p.i][p.j]}?")
-                        //parents[p.i][p.j]!!.let { d in it } ?: false
-                        d in parents[p.i][p.j]!!
-                    }
-
-                /*
-                val existingParents = object {
-                    operator fun get(plotSide: PlotSide): PlotSide? = with(plotSide) {
-                        parents[p.i][p.j].getValue(d)
-                    }
-
-                    operator fun set(plotSide: PlotSide, value: PlotSide?) = with(plotSide) {
-                        parents[p.i][p.j].run {
-                            if (d !in this) throw AssertionError()
-                            this[d] = value
+                        this[p.i][p.j] = EnumMap<Direction, MutableSet<Position>>(Direction::class.java).also { map ->
+                            for (d in Direction.entries)
+                                map[d] = mutableSetOf(p)
                         }
-                    }
                 }
-                */
 
-                override var PlotSide.parent: PlotSide?
-                    get() {
-                        assert(has(this))
-                        return parents[p.i][p.j]!!.getValue(d)
-                    }
-                    set(value) {
-                        assert(has(this))
-                        parents[p.i][p.j]!![d] = value
-                    }
-
-                override val allElements: Collection<PlotSide>
-                    get() = ps.flatMap { p -> parents[p.i][p.j]!!.keys.map { d -> PlotSide(p, d) } }
-
-                // not used
-                /**
-                 * Can only remove a leaf!
-                 */
-                fun removeLeaf(plotSide: PlotSide) {
-                    with(plotSide) {
-                        assert(has(this))
-                        parents[p.i][p.j]!!.remove(d)
-                    }
-                }
-            }
-
-            for (p in ps) {
-                val pSides = with(p) { sideUnionFind.parents[i][j] }!!
-                for (d in Direction.entries)
-                    pSides[d] = null
+            for (p in ps/*.sortedBy { it.posSum() }*/ /* This doesn't work. */) {
+                val sideSetsByDirection = positionSetsBySideDirectionByPosition[p.i][p.j]!!
 
                 for (neighborDirection in Direction.smallerDirections) {
                     val neighborP = p + neighborDirection.diff
-                    val pNeighborSides = with(neighborP) { sideUnionFind.parents.getOrNull(i)?.getOrNull(j) }
-                    if (pNeighborSides !== null) {
+                    val neighborSideSetsByDirection =
+                        with(neighborP) { positionSetsBySideDirectionByPosition.getOrNull(i)?.getOrNull(j) }
+
+                    if (neighborSideSetsByDirection !== null) {
                         fun removeAndUnion(
                             neighborConnectingSideDirection: Direction,
                             pConnectingSideDirection: Direction,
-                            commonSides: List<Direction>
+                            commonSideDirections: List<Direction>
                         ) {
-                            val pNewSide = neighborConnectingSideDirection
+                            if (neighborConnectingSideDirection in neighborSideSetsByDirection) {
+                                neighborSideSetsByDirection[neighborConnectingSideDirection]!!.remove(neighborP)
+                                neighborSideSetsByDirection.remove(neighborConnectingSideDirection)
+                                sideSetsByDirection[pConnectingSideDirection]!!.remove(p)
+                                sideSetsByDirection.remove(pConnectingSideDirection)
 
-                            /*for (commonSide in commonSides) {
-                                pSides[commonSide] = null
-                            }*/
-
-                            if (neighborConnectingSideDirection in pNeighborSides) {
-                                pNeighborSides.remove(neighborConnectingSideDirection)
-                                println("Remove neighbor side: ${PlotSide(neighborP, neighborConnectingSideDirection)}")
-                                pSides.remove(pConnectingSideDirection)
-                                println("Remove own side: ${PlotSide(p, pConnectingSideDirection)}")
-
-                                for (commonSide in commonSides) {
-                                    val neighborCommonPlotSide = PlotSide(neighborP, commonSide)
-                                    if (sideUnionFind.has(neighborCommonPlotSide))
-                                        sideUnionFind.unionIfNeeded(
-                                            neighborCommonPlotSide, PlotSide(p, commonSide)
-                                        ) // ! For removing a leaf to work, `neighborCommonPlotSide` must be put first.
+                                for (commonSideDirection in commonSideDirections) {
+                                    val neighborCommonPlotSide = PlotSide(neighborP, commonSideDirection)
+                                    neighborSideSetsByDirection[commonSideDirection]?.let { set ->
+                                        sideSetsByDirection[commonSideDirection]?.let {
+                                            set.add(p)
+                                            sideSetsByDirection[commonSideDirection] = set
+                                        }
+                                    }
                                 }
                             }
-                            /*else
-                                pSides[pConnectingSide] = null*/
-
-                            //pSides[pNewSide] = null
                         }
 
                         when (neighborDirection) {
@@ -219,9 +165,25 @@ fun main() {
                 }
             }
 
-            ps.size * sideUnionFind.sets().size
-        }
+            val sideSets = positionSetsBySideDirectionByPosition.flatMap {
+                it.asSequence().filterNotNull().flatMap { it.map { it.toPair() } }
+            }.distinct()
 
+            val splitCountsOfSideSets = sideSets.map {
+                it.second.asSequence().sorted().zipWithNext().count { (a, b) ->
+                    ((b.i - a.i) + (b.j - a.j) != 1)/*.also {
+                        if (it)
+                            println("Split: $a $b")
+                    }*/
+                } + 1
+            }
+
+            val price = ps.size * splitCountsOfSideSets.sum()
+
+            //println("Side sets with ${with(ps.first()) { input[i][j] }} and price $price: $sideSets")
+            price
+        }
+        //println()
 
         return ans
     }
@@ -231,12 +193,20 @@ fun main() {
 
     // Or read a large test input from the `src/Day02_test.txt` file:
     val testInput = readInput("Day12_test")
-    check(part1(testInput).also { println(it) } == 140)
+    check(part1(testInput) == 140)
+    val testInput4 = readInput("Day12_test4")
+    check(part1(testInput4) == 1930)
 
     // Read the input from the `src/Day01.txt` file.
     val input = readInput("Day12")
     part1(input).println()
 
-    check(part2(testInput) == 80) // TODO note that the test input might be different
+    check(part2(testInput) == 80)
+    val testInput2 = readInput("Day12_test2")
+    check(part2(testInput2) == 236)
+    val testInput3 = readInput("Day12_test3")
+    check(part2(testInput3) == 368)
+    check(part2(testInput4)/*.also { println(it) }*/ == 1206)
+
     part2(input).println()
 }

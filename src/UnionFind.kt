@@ -14,7 +14,7 @@ interface UnionFindOps<T> {
     }
 
     fun unionIfNeeded(a: T, b: T) {
-        println("union $a and $b")
+        //println("union $a and $b")
         val aRoot = a.findRoot()
         val bRoot = b.findRoot()
         if (aRoot != bRoot/*aRoot !== bRoot /* This caused bugs and took me a lot of time to debug! */*/)

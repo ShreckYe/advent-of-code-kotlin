@@ -7,7 +7,8 @@ interface PositionOrPositionDiff<T : PositionOrPositionDiff<T>> : Comparable<T> 
             else -> iCompareTo
         }
 
-
+    fun posSum() =
+        i + j
 }
 
 data class Position(override val i: Int, override val j: Int) : PositionOrPositionDiff<Position> {
@@ -18,4 +19,10 @@ data class Position(override val i: Int, override val j: Int) : PositionOrPositi
 data class PositionDiff(override val i: Int, override val j: Int) : PositionOrPositionDiff<PositionDiff> {
     operator fun plus(other: PositionDiff) =
         PositionDiff(i + other.i, j + other.j)
+}
+
+object DiagonalComparator : Comparator<PositionOrPositionDiff<*>> {
+    override fun compare(o1: PositionOrPositionDiff<*>, o2: PositionOrPositionDiff<*>): Int {
+        return o1.posSum() compareTo o2.posSum()
+    }
 }
