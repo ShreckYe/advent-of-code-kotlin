@@ -1,10 +1,6 @@
 import Direction.*
 import java.util.EnumSet
 
-enum class Direction {
-    Up, Right, Down, Left
-}
-
 val guardChars = listOf('^', '>', 'v', '<')
 
 fun Char.toDirection() =

@@ -15,5 +15,6 @@ tasks {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0") // for `Flow`s
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0") // for `Flow`
+    implementation("io.arrow-kt:arrow-core:2.0.0") // for `Option`
 }
