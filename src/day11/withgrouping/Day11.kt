@@ -1,5 +1,6 @@
 package day11.withgrouping
 
+/*
 import println
 import readInput
 import java.math.BigInteger
@@ -124,3 +125,4 @@ fun main() {
 
     part2(input).println()
 }
+*/
