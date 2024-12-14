@@ -102,6 +102,15 @@ fun main() {
         return i
     }
 
+    fun part2Method2(input: List<String>, width: Int, height: Int) {
+        val robots = processInput(input)
+
+        var ps = robots.map { it.p }
+        val vs = robots.map { it.v }
+
+        TODO("find lowest variance")
+    }
+
     // Test if implementation meets criteria from the description, like:
     //check(part1(listOf("test_input")) == 1)
 

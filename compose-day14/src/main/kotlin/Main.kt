@@ -2,6 +2,7 @@ import TestOrPuzzle.*
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
@@ -73,6 +75,10 @@ fun App() {
                     }
                 )
             }
+            var showNumbersAndGap by remember { mutableStateOf(true) }
+            Button(onClick = { showNumbersAndGap = !showNumbersAndGap }) {
+                Text((if (showNumbersAndGap) "Hide" else "Show") + " numbers and gaps")
+            }
 
             val inputData = robotsMap.getValue(testOrPuzzle)
 
@@ -85,8 +91,8 @@ fun App() {
             }
             //val pointSize = Size(pxZoom, pxZoom)
 
-            Box {
-                val seconds = 0..10000
+            Box(if (showNumbersAndGap) Modifier else Modifier.background(Color.Black)) {
+                val seconds = 0..11000
 
                 /*
                 //remember(inputData)
@@ -171,11 +177,11 @@ fun App() {
                 LazyVerticalGrid(
                     GridCells.Adaptive(minSize.dp),
                     state = lazyGridState,
-                    contentPadding = PaddingValues(16.dp)
+                    contentPadding = if (showNumbersAndGap) PaddingValues(16.dp) else PaddingValues(0.dp)
                 ) {
                     items(seconds.toList()) { i ->
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(i.toString())
+                            if (showNumbersAndGap) Text(i.toString())
 
                             /*
                             val visual = visuals[i]
