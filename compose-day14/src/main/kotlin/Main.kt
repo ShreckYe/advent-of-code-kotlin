@@ -92,7 +92,7 @@ fun App() {
             //val pointSize = Size(pxZoom, pxZoom)
 
             Box(if (showNumbersAndGap) Modifier else Modifier.background(Color.Black)) {
-                val seconds = 0..11000
+                val seconds = 0..with(inputData) { width * height }
 
                 /*
                 //remember(inputData)
