@@ -1,3 +1,6 @@
+/**
+ * Note that this is coordinated like a matrix, with [i] indicating the row counting from top, and [j] indicating the column counting from left.
+ */
 interface PositionOrPositionDiff<T : PositionOrPositionDiff<T>> : Comparable<T> {
     val i: Int
     val j: Int
