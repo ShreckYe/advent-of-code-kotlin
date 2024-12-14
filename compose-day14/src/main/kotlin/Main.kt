@@ -1,5 +1,4 @@
-import TestOrPuzzle.Puzzle
-import TestOrPuzzle.Test
+import TestOrPuzzle.*
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.VerticalScrollbar
@@ -16,7 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -27,10 +26,10 @@ import java.lang.Integer.max
 import java.util.*
 
 enum class TestOrPuzzle {
-    Test, Puzzle
+    Test, Puzzle, PuzzleSelected
 }
 
-class InputData(val robots: List<Robot>, val width: Int, val height: Int)
+data class InputData(val robots: List<Robot>, val width: Int, val height: Int)
 
 val sizeOne = Size(1f, 1f)
 
@@ -41,7 +40,18 @@ fun App() {
     val robotsMap = remember {
         EnumMap<TestOrPuzzle, InputData>(TestOrPuzzle::class.java).apply {
             this[Test] = InputData(processInput(readInput("Day14_test")), 11, 7)
-            this[Puzzle] = InputData(processInput(readInput("Day14")), 101, 107)
+            val puzzleWidth = 101
+            val puzzleHeight = 107
+            val puzzleInputData = InputData(processInput(readInput("Day14")), puzzleWidth, puzzleHeight)
+            this[Puzzle] = puzzleInputData
+            this[PuzzleSelected] = puzzleInputData.copy(robots = puzzleInputData.robots.map {
+                with(it) {
+                    Robot(
+                        position(2, puzzleWidth, puzzleHeight),
+                        XAndY(v.x * 101 posRemainder puzzleWidth, v.y * 101 posRemainder puzzleHeight)
+                    )
+                }
+            })
         }
     }
     var testOrPuzzle by remember { mutableStateOf(Test) }
@@ -51,13 +61,15 @@ fun App() {
             Button(onClick = {
                 testOrPuzzle = when (testOrPuzzle) {
                     Test -> Puzzle
-                    Puzzle -> Test
+                    Puzzle -> PuzzleSelected
+                    PuzzleSelected -> Test
                 }
             }) {
                 Text(
                     when (testOrPuzzle) {
                         Test -> "Test input"
                         Puzzle -> "Puzzle input"
+                        PuzzleSelected -> "Puzzle input starting from 2 with interval 101"
                     }
                 )
             }

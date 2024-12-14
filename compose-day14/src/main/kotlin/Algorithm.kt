@@ -14,12 +14,11 @@ fun processInput(input: List<String>) = input.map {
     Robot(list[0], list[1])
 }
 
+fun Robot.position(numSeconds: Int, width: Int, height: Int): XAndY =
+    XAndY((p.x + numSeconds * v.x) posRemainder width, (p.y + numSeconds * v.y) posRemainder height)
+
 fun List<Robot>.positions(numSeconds: Int, width: Int, height: Int) =
-    map {
-        with(it) {
-            XAndY((p.x + numSeconds * v.x) posRemainder width, (p.y + numSeconds * v.y) posRemainder height)
-        }
-    }
+    map { it.position(numSeconds, width, height) }
 
 @OptIn(ExperimentalUnsignedTypes::class)
 fun List<XAndY>.toCountVisual(width: Int, height: Int): List<UByteArray> {
