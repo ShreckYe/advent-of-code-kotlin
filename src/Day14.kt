@@ -102,13 +102,31 @@ fun main() {
         return i
     }
 
-    fun part2Method2(input: List<String>, width: Int, height: Int) {
+    fun part2Method2(input: List<String>, width: Int, height: Int) : Int {
         val robots = processInput(input)
 
         var ps = robots.map { it.p }
         val vs = robots.map { it.v }
 
-        TODO("find lowest variance")
+        val pss = (0..width * height).scan(ps) { ps, _ ->
+            //println(i)
+            ps.zip(vs) { p, v ->
+                XAndY((p.x + v.x) posRemainder width, (p.y + v.y) posRemainder height)
+            }
+        }
+
+        fun Double.squared() =
+            this * this
+
+        fun List<XAndY>.variance(): Double {
+            val avgX = asSequence().map { it.x }.average()
+            val avgY = asSequence().map { it.y }.average()
+            return sumOf { (it.x - avgX).squared() + (it.y - avgY).squared() }
+        }
+
+        val ans = pss.withIndex().minBy { it.value.variance() }.index
+
+        return ans
     }
 
     // Test if implementation meets criteria from the description, like:
@@ -129,5 +147,6 @@ fun main() {
 
     //check(part2(testInput) == 1)
     //part2(testInput, 11, 7)
-    part2(input, 101, 103).println()
+    //part2(input, 101, 103).println()
+    part2Method2(input, 101, 103).println()
 }
