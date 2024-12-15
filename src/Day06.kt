@@ -3,23 +3,6 @@ import java.util.EnumSet
 
 val guardChars = listOf('^', '>', 'v', '<')
 
-fun Char.toDirection() =
-    when (this) {
-        '^' -> Up
-        '>' -> Right
-        'v' -> Down
-        '<' -> Left
-        else -> null
-    }
-
-fun Direction.turnRight90Degrees() =
-    when (this) {
-        Up -> Right
-        Right -> Down
-        Down -> Left
-        Left -> Up
-    }
-
 fun main() {
     fun part1(input: List<String>): Int {
         val m = input.size

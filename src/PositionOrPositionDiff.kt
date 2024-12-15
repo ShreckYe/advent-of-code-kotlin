@@ -17,11 +17,17 @@ interface PositionOrPositionDiff<T : PositionOrPositionDiff<T>> : Comparable<T> 
 data class Position(override val i: Int, override val j: Int) : PositionOrPositionDiff<Position> {
     operator fun plus(other: PositionDiff) =
         Position(i + other.i, j + other.j)
+
+    override fun toString() =
+        "($i, $j)"
 }
 
 data class PositionDiff(override val i: Int, override val j: Int) : PositionOrPositionDiff<PositionDiff> {
     operator fun plus(other: PositionDiff) =
         PositionDiff(i + other.i, j + other.j)
+
+    override fun toString() =
+        "($i, $j)"
 }
 
 object DiagonalComparator : Comparator<PositionOrPositionDiff<*>> {
