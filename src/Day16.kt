@@ -65,7 +65,15 @@ fun main() {
             .mapIndexedNotNull { i, line -> line.indexOf('S').let { j -> if (j != -1) Position(i, j) else null } }
             .first()
 
-        val minScores = input.map { Array<Int?>(it.length) { null } }
+        //val minScores = input.map { IntArray(it.length) { Int.MAX_VALUE } } // This can't be used because scores of different directions are not comparable.
+        val minScores = input.map {
+            it.map {
+                EnumMap<Direction, Int>(Direction::class.java)/*.apply {
+                    for (d in Direction.entries)
+                        this[d] = Int.MAX_VALUE
+                }*/
+            }
+        }
 
         // Dijkstra's algorithm
 
@@ -75,23 +83,29 @@ fun main() {
         val priorityQueue = PriorityQueue<Candidate> { o1, o2 -> o1.score compareTo o2.score }
 
         priorityQueue.add(Candidate(PositionAndDirection(sp, Direction.Right), 0, null))
-        val prevs = input.map { it.map { mutableListOf<Position>() } }
+        val prevs = input.map { it.map { mutableListOf<Position>() } } // TODO This doesn't store by directions.
         var eMinScore: Int? = null
         var ep: Position? = null
+        //var eMin: Candidate? = null
+        //val eMins  = mutableListOf<Candidate>()
         while (true) {
             val candidate: Candidate? = priorityQueue.poll()
             if (candidate === null)
                 break
 
             val pd = candidate.pd
-            val p = pd.p
             val score = candidate.score
 
-            val existingMinScore = minScores[p]
+            if (eMinScore !== null && score > eMinScore!!)
+                break
+
+            val existingMinScore = minScores[pd]
             println("$candidate $existingMinScore")
+            val p = pd.p
             if (existingMinScore === null) {
-                minScores[p] = score
-                if (input[p] == 'E') {
+                minScores[pd] = score
+                // parentheses needed
+                if (input[p] == 'E' && (eMinScore.also { println(it) } === null || score < eMinScore!!)) {
                     eMinScore = score
                     ep = p
                 }
@@ -100,14 +114,12 @@ fun main() {
             else if (score < existingMinScore)
                 throw AssertionError()
 
-
-            if (eMinScore !== null && score > eMinScore!!)
-                break
+            println("added")
 
             candidate.prevP?.let { prevs[p].add(it) }
 
-            fun PositionAndDirection.walkWithDirection(d: Direction) =
-                PositionAndDirection(p + d.diff, d )
+            fun PositionAndDirection.walkWithDirection(newD: Direction) =
+                PositionAndDirection(this.p + newD.diff, newD )
 
             // combine turning and walking
             val nexts = listOf(
@@ -120,8 +132,7 @@ fun main() {
 
             for ((nextPd, scoreInc) in nexts) {
                 val nextScore = score + scoreInc
-                val nextP = nextPd.p
-                val existingNextMinScore = minScores[nextP]
+                val existingNextMinScore = minScores[nextPd]
                 if (existingNextMinScore === null || run {
                         assert(nextScore >= existingNextMinScore)
                         existingNextMinScore == nextScore
