@@ -61,91 +61,72 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        val s = input.asSequence()
+        val sp = input.asSequence()
             .mapIndexedNotNull { i, line -> line.indexOf('S').let { j -> if (j != -1) Position(i, j) else null } }
             .first()
 
-        //val minScores = input.map { IntArray(it.length) { Int.MAX_VALUE } }
-        val minScores = input.map {
-            it.map {
-                EnumMap<Direction, Int>(Direction::class.java)/*.apply {
-                    for (d in Direction.entries)
-                        this[d] = Int.MAX_VALUE
-                }*/
-            }
-        }
+        val minScores = input.map { Array<Int?>(it.length) { null } }
 
         // Dijkstra's algorithm
 
-        val spd = PositionAndDirection(s, Direction.Right)
-        minScores[spd] = 0
-        data class PdAndScore(val pd: PositionAndDirection, val score: Int)
+        data class Candidate(val pd: PositionAndDirection, val score: Int, val prevP: Position?)
 
-        val priorityQueue =
-            PriorityQueue<PdAndScore> { o1, o2 -> o1.score compareTo o2.score } // score has to be tracked to see whether the path was invalidated.
-        priorityQueue.add(PdAndScore(spd, 0))
-        val candidatePrevs = input.map { it.map { EnumMap<Direction, Position>(Direction::class.java) } }
+        // score has to be tracked to see whether the path was invalidated by a lower score.
+        val priorityQueue = PriorityQueue<Candidate> { o1, o2 -> o1.score compareTo o2.score }
+
+        priorityQueue.add(Candidate(PositionAndDirection(sp, Direction.Right), 0, null))
         val prevs = input.map { it.map { mutableListOf<Position>() } }
         var eMinScore: Int? = null
-        var e: Position? = null
+        var ep: Position? = null
         while (true) {
-            val minPds: PdAndScore? = priorityQueue.poll()
-            if (minPds === null)
+            val candidate: Candidate? = priorityQueue.poll()
+            if (candidate === null)
                 break
 
-            val minPd = minPds.pd
+            val pd = candidate.pd
+            val p = pd.p
+            val score = candidate.score
 
-            val score = minPds.score
-
-            val minScore = minScores[minPd]
-            if (minScore === null)
-                minScores[minPd] = score
-            else if (score > minScore)
+            val existingMinScore = minScores[p]
+            println("$candidate $existingMinScore")
+            if (existingMinScore === null) {
+                minScores[p] = score
+                if (input[p] == 'E') {
+                    eMinScore = score
+                    ep = p
+                }
+            } else if (score > existingMinScore)
                 continue
-            else if (score < minScore)
+            else if (score < existingMinScore)
                 throw AssertionError()
+
 
             if (eMinScore !== null && score > eMinScore!!)
                 break
 
-            val candidatePrev = candidatePrevs[minPd]
-            candidatePrev?.let {
-                candidatePrevs[minPd.p].remove(minPd.d)
-                prevs[minPd.p].add(it)
-                //println("Prev added: $minPd $it")
+            candidate.prevP?.let { prevs[p].add(it) }
+
+            fun PositionAndDirection.walkWithDirection(d: Direction) =
+                PositionAndDirection(p + d.diff, d )
+
+            // combine turning and walking
+            val nexts = listOf(
+                pd.walkWithDirection(pd.d) to 1,
+                pd.walkWithDirection(pd.d.turnRight90Degrees()) to 1001,
+                pd.walkWithDirection(pd.d.turnLeft90Degrees()) to 1001
+            ).filter { (nextPd, _) ->
+                input.getOrNull(nextPd.p.i)?.getOrNull(nextPd.p.j).let { it !== null && it != '#' }
             }
 
-            val neighbors = listOf(
-                minPd.copy(p = minPd.p + minPd.d.diff) to 1,
-                minPd.copy(d = minPd.d.turnRight90Degrees()) to 1000,
-                minPd.copy(d = minPd.d.turnLeft90Degrees()) to 1000
-            )
-
-            for ((neighborPd, scoreInc) in neighbors) {
-                if (input.getOrNull(neighborPd.p.i)?.getOrNull(neighborPd.p.j).let { it === null || it == '#' })
-                    continue
-
-                val neighborNewScore = score + scoreInc
-                val neighborMinScore = minScores[neighborPd]
-                if (neighborMinScore === null || run {
-                        assert(neighborNewScore >= neighborMinScore)
-                        neighborMinScore == neighborNewScore
-                    }) {
-                    // not needed for the `minScores[neighborPd] == neighborNewScore` case but not refactored
-                    //minScores[neighborPd] = neighborNewScore // TODO moved to above
-                    // can be added only the case of walking but not refactored
-                    if (neighborPd.p != minPd.p)
-                    //prevs[neighborPd.p].add(minPd.p) // Adding directly to `prevs` is incorrect.
-                        candidatePrevs[neighborPd] = minPd.p/*.also {
-                            println("Candidate prev added: $neighborPd $minPd")
-                        }*/
-                    if (input[neighborPd.p] == 'E') {
-                        eMinScore = neighborNewScore
-                        e = neighborPd.p
-                        //continue // commented out so the candidate prev is processed
-                    }
-                    priorityQueue.add(PdAndScore(neighborPd, neighborNewScore))
-                }
+            for ((nextPd, scoreInc) in nexts) {
+                val nextScore = score + scoreInc
+                val nextP = nextPd.p
+                val existingNextMinScore = minScores[nextP]
+                if (existingNextMinScore === null || run {
+                        assert(nextScore >= existingNextMinScore)
+                        existingNextMinScore == nextScore
+                    })
+                    priorityQueue.add(Candidate(nextPd, nextScore, p))
             }
         }
 
@@ -160,7 +141,7 @@ fun main() {
                     addAllToBestPath(prev)
             }
         }
-        addAllToBestPath(e!!)
+        addAllToBestPath(ep!!)
 
         val ans = isOnBestPath.sumOf { it.count { it } }
 
@@ -184,7 +165,7 @@ fun main() {
 
     check(part2(testInput).also { println(it) } == 45)
     val testInput2 = readInput("Day16_test2")
-    //check(part2(testInput2).also { println(it) } == 64) // TODO make this correct first
+    check(part2(testInput2).also { println(it) } == 64)
 
     part2(input).println()
 }
