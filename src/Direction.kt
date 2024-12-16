@@ -17,10 +17,18 @@ fun Char.toDirection() =
         else -> null
     }
 
-fun Direction.turnRight90Degrees() =
+
+@Suppress("NOTHING_TO_INLINE")
+private inline fun Direction.turnRight90DegreesInline() =
     when (this) {
         Up -> Right
         Right -> Down
         Down -> Left
         Left -> Up
     }
+
+fun Direction.turnRight90Degrees() =
+    turnRight90DegreesInline()
+
+fun Direction.turnLeft90Degrees() =
+    turnRight90DegreesInline().turnRight90DegreesInline().turnRight90DegreesInline()
