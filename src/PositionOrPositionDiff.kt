@@ -35,3 +35,18 @@ object DiagonalComparator : Comparator<PositionOrPositionDiff<*>> {
         return o1.posSum() compareTo o2.posSum()
     }
 }
+
+
+operator fun <T> List<List<T>>.get(p: Position) =
+    this[p.i][p.j]
+
+operator fun List<String>.get(p: Position) =
+    this[p.i][p.j]
+
+operator fun <T> List<MutableList<T>>.set(p: Position, value: T) {
+    this[p.i][p.j] = value
+}
+
+operator fun <T> List<Array<T>>.set(p: Position, value: T) {
+    this[p.i][p.j] = value
+}

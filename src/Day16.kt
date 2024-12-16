@@ -1,9 +1,6 @@
 import java.util.*
 
 fun main() {
-    // TODO extract common
-    data class PositionAndDirection(val p: Position, val d: Direction)
-
     fun part1(input: List<String>): Int {
         val s = input.asSequence()
             .mapIndexedNotNull { i, line -> line.indexOf('S').let { j -> if (j != -1) Position(i, j) else null } }
@@ -19,29 +16,6 @@ fun main() {
                     for (d in Direction.entries)
                         this[d] = Int.MAX_VALUE
                 }*/
-            }
-        }
-
-        operator fun <T> List<List<T>>.get(p: Position) =
-            this[p.i][p.j]
-
-        operator fun List<String>.get(p: Position) =
-            this[p.i][p.j]
-
-        operator fun <T> List<MutableList<T>>.set(p: Position, value: T) {
-            this[p.i][p.j] = value
-        }
-
-        operator fun <T> List<Array<T>>.set(p: Position, value: T) {
-            this[p.i][p.j] = value
-        }
-
-        operator fun <T> List<List<EnumMap<Direction, T>>>.get(pd: PositionAndDirection) =
-            with(pd) { this@get[p.i][p.j][d] }
-
-        operator fun <T> List<List<EnumMap<Direction, T>>>.set(pd: PositionAndDirection, value: T) {
-            with(pd) {
-                this@set[p.i][p.j][d] = value
             }
         }
 
