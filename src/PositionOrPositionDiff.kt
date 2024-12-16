@@ -40,13 +40,22 @@ object DiagonalComparator : Comparator<PositionOrPositionDiff<*>> {
 operator fun <T> List<List<T>>.get(p: Position) =
     this[p.i][p.j]
 
-operator fun List<String>.get(p: Position) =
-    this[p.i][p.j]
-
+@JvmName("setListOfList")
 operator fun <T> List<MutableList<T>>.set(p: Position, value: T) {
     this[p.i][p.j] = value
 }
 
+operator fun List<String>.get(p: Position) =
+    this[p.i][p.j]
+
+@JvmName("setListOfArray")
 operator fun <T> List<Array<T>>.set(p: Position, value: T) {
+    this[p.i][p.j] = value
+}
+
+operator fun List<BooleanArray>.get(p: Position) =
+    this[p.i][p.j]
+
+operator fun List<BooleanArray>.set(p: Position, value: Boolean) {
     this[p.i][p.j] = value
 }
