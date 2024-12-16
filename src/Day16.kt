@@ -74,16 +74,17 @@ fun main() {
                 }*/
             }
         }
+        val prevs =
+            input.map { it.map { EnumMap<Direction, MutableList<PositionAndDirection>>(Direction::class.java) } }
 
         // Dijkstra's algorithm
 
-        data class Candidate(val pd: PositionAndDirection, val score: Int, val prevP: Position?)
+        data class Candidate(val pd: PositionAndDirection, val score: Int, val prev: PositionAndDirection?)
 
         // score has to be tracked to see whether the path was invalidated by a lower score.
         val priorityQueue = PriorityQueue<Candidate> { o1, o2 -> o1.score compareTo o2.score }
 
         priorityQueue.add(Candidate(PositionAndDirection(sp, Direction.Right), 0, null))
-        val prevs = input.map { it.map { mutableListOf<Position>() } } // TODO This doesn't store by directions.
         var eMinScore: Int? = null
         var ep: Position? = null
         //var eMin: Candidate? = null
@@ -100,12 +101,12 @@ fun main() {
                 break
 
             val existingMinScore = minScores[pd]
-            println("$candidate $existingMinScore")
+            //println("$candidate $existingMinScore")
             val p = pd.p
             if (existingMinScore === null) {
                 minScores[pd] = score
                 // parentheses needed
-                if (input[p] == 'E' && (eMinScore.also { println(it) } === null || score < eMinScore!!)) {
+                if (input[p] == 'E' && (eMinScore/*.also { println(it) }*/ === null || score < eMinScore!!)) {
                     eMinScore = score
                     ep = p
                 }
@@ -114,18 +115,20 @@ fun main() {
             else if (score < existingMinScore)
                 throw AssertionError()
 
-            println("added")
+            //println("added")
 
-            candidate.prevP?.let { prevs[p].add(it) }
+            val d = pd.d
+            val prevs = prevs[p].getOrPut(d) { mutableListOf() }
+            candidate.prev?.let { prevs.add(it) }
 
             fun PositionAndDirection.walkWithDirection(newD: Direction) =
-                PositionAndDirection(this.p + newD.diff, newD )
+                PositionAndDirection(this.p + newD.diff, newD)
 
             // combine turning and walking
             val nexts = listOf(
-                pd.walkWithDirection(pd.d) to 1,
-                pd.walkWithDirection(pd.d.turnRight90Degrees()) to 1001,
-                pd.walkWithDirection(pd.d.turnLeft90Degrees()) to 1001
+                pd.walkWithDirection(d) to 1,
+                pd.walkWithDirection(d.turnRight90Degrees()) to 1001,
+                pd.walkWithDirection(d.turnLeft90Degrees()) to 1001
             ).filter { (nextPd, _) ->
                 input.getOrNull(nextPd.p.i)?.getOrNull(nextPd.p.j).let { it !== null && it != '#' }
             }
@@ -137,27 +140,33 @@ fun main() {
                         assert(nextScore >= existingNextMinScore)
                         existingNextMinScore == nextScore
                     })
-                    priorityQueue.add(Candidate(nextPd, nextScore, p))
+                    priorityQueue.add(Candidate(nextPd, nextScore, pd))
             }
         }
 
         //println(prevs.joinToString("\n", postfix = "\n") {it.joinToString("") { it.count().toString() }})
 
-        val isOnBestPath = input.map { BooleanArray(it.length) { false } }
-        fun addAllToBestPath(position: Position) {
-            if (!isOnBestPath[position]) {
-                //println(position)
-                isOnBestPath[position] = true
-                for (prev in prevs[position])
+        val isOnBestPath = input.map { it.map { EnumSet.noneOf(Direction::class.java) } }
+        fun addAllToBestPath(pd: PositionAndDirection) {
+            val set = isOnBestPath[pd.p]
+            val d = pd.d
+            if (d !in set) {
+                //println(pd)
+                set.add(d)
+                for (prev in prevs[pd]!!)
                     addAllToBestPath(prev)
             }
         }
-        addAllToBestPath(ep!!)
 
-        val ans = isOnBestPath.sumOf { it.count { it } }
+
+        prevs[ep!!].keys.forEach { d ->
+            addAllToBestPath(PositionAndDirection(ep, d))
+        }
+
+        val ans = isOnBestPath.sumOf { it.count { it.isNotEmpty() } }
 
         println(input.withIndex().joinToString("\n", postfix = "\n") { (i, line) ->
-            line.withIndex().map { (j, c) -> if (isOnBestPath[i][j]) 'O' else c }.joinToString("")
+            line.withIndex().map { (j, c) -> if (isOnBestPath[i][j].isNotEmpty()) 'O' else c }.joinToString("")
         })
 
         return ans
@@ -174,9 +183,9 @@ fun main() {
     val input = readInput("Day16")
     part1(input).println()
 
-    check(part2(testInput).also { println(it) } == 45)
+    check(part2(testInput)/*.also { println(it) }*/ == 45)
     val testInput2 = readInput("Day16_test2")
-    check(part2(testInput2).also { println(it) } == 64)
+    check(part2(testInput2)/*.also { println(it) }*/ == 64)
 
     part2(input).println()
 }
