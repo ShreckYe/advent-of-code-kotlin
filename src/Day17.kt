@@ -111,7 +111,7 @@ fun main() {
         return runProgram(registers, program).joinToString(",")
     }
 
-    fun part2(input: List<String>): Int {
+    fun part2Search(input: List<String>): Int {
         val (registers, program) = processInput(input)
         val ans = (1..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
             if (registerA % 100000000 == 0)
@@ -134,6 +134,21 @@ fun main() {
         return ans
     }
 
+    fun part2Analyze() {
+        /*
+        Program: 2,4,1,4,7,5,4,1,1,4,5,5,0,3,3,0
+
+        initial registers: a, b, c
+        Instruction 0 (2,4): a mod 8, b, c
+        Instruction 1 (1,4): a mod 8, b xor 4, c
+        Instruction 2 (7,5): a mod 8, b xor 4, (a mod 8) / (2 ^ (b xor 4))
+        Instruction 3 (4,1): a mod 8, (b xor 4) xor ((a mod 8) / (2 ^ (b xor 4))), (a mod 8) / (2 ^ b)
+        Instruction 4 (1,4): a mod 8, (b xor 4) xor ((a mod 8) / (2 ^ (b xor 4))) xor 4 = b xor ((a mod 8) / (2 ^ (b xor 4))), (a mod 8) / (2 ^ (b xor 4))
+        Instruction 5 (5,5): output "b xor ((a mod 8) / (2 ^ (b xor 4))) mod 8"
+        Instruction 6 (0,3): a mod 8 / 2 ^ 3 = 0 ???
+         */
+    }
+
     // Test if implementation meets criteria from the description, like:
     //check(part1(listOf("test_input")) == 1)
 
@@ -146,7 +161,7 @@ fun main() {
     part1(input).println()
 
     val testInput2 = readInput("Day17_test2")
-    check(part2(testInput2).also { println(it) } == 117440)
+    check(part2Search(testInput2).also { println(it) } == 117440)
     println("Check passed.")
-    part2(input).println()
+    part2Search(input).println()
 }
