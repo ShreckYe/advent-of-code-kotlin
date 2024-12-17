@@ -9,6 +9,10 @@ value class `3BitInteger`(val uByte: UByte) {
 
     override fun toString() =
         uByte.toString()
+    /*
+    fun equals(other: `3BitInteger`) =
+        uByte == other.uByte
+    */
 }
 
 sealed class ComboOperand {
@@ -37,12 +41,15 @@ fun main() {
         return Pair(registers, program)
     }
 
-    fun runProgram(registers: IntArray, program: List<`3BitInteger`>, onOutput: (`3BitInteger`) -> Unit = {}): List<`3BitInteger`> {
-        var outputs = mutableListOf<`3BitInteger`>()
-
+    fun runProgram(
+        registers: IntArray,
+        program: List<`3BitInteger`>,
+        onOutput: (`3BitInteger`) -> Boolean
+    ): Boolean {
         var ip = 0
         //for ((opcode, literalOperand) in program.chunked(2)) {
         while (ip < program.size) {
+            //println("IP: $ip")
             val opcode = program[ip]
             val literalOperand = program[ip + 1]
 
@@ -76,7 +83,7 @@ fun main() {
                 }
 
                 4.toUByte() -> registers[1] = registers[1] xor registers[2]
-                5.toUByte() -> outputs.add((comboOperandValue() % 8).to3BitInteger())
+                5.toUByte() -> if (!onOutput((comboOperandValue() % 8).to3BitInteger())) return false
                 6.toUByte() -> registers[1] = dv()
                 7.toUByte() -> registers[2] = dv()
                 else -> throw IllegalArgumentException()
@@ -84,7 +91,18 @@ fun main() {
             if (incIP)
                 ip += 2
         }
+        return true
+    }
 
+    fun runProgram(
+        registers: IntArray,
+        program: List<`3BitInteger`>
+    ): List<`3BitInteger`> {
+        val outputs = mutableListOf<`3BitInteger`>()
+        assert(runProgram(registers, program) {
+            outputs.add(it)
+            true
+        })
         return outputs
     }
 
@@ -96,11 +114,21 @@ fun main() {
     fun part2(input: List<String>): Int {
         val (registers, program) = processInput(input)
         val ans = (0..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
+            //println("Register A: $registerA")
             val registers = registers.copyOf().also { it[0] = registerA }
             //println(registers.toList())
             //println(program)
-            runProgram(registers, program).map { it.uByte } == program.map { it.uByte } // TODO `map` needed?
-        }.findFirst().get()
+            val programIterator = program.iterator()
+            runProgram(registers, program) {
+                // `equals` not available for a value class
+                (it.uByte/*.also { println("Output: $it") }*/ == programIterator.next().uByte/*.also { println("Program element: $it") }*/)/*.also {
+                    println("Comp result: $it")
+                }*/
+            } &&
+                    !programIterator.hasNext()// make sure that all the elements are compared
+        }
+            //.first() // for `Sequence`
+            .findFirst().get() // for `Stream`
 
         return ans
     }
@@ -117,7 +145,7 @@ fun main() {
     part1(input).println()
 
     val testInput2 = readInput("Day17_test2")
-    check(part2(testInput2) == 117440)
+    check(part2(testInput2).also { println(it) } == 117440)
     println("Check passed.")
     part2(input).println()
 }
