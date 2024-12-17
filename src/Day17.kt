@@ -137,9 +137,9 @@ fun main() {
         val ans = (1..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
             val registerA = registerA.toLong()
             if (registerA % (1 shl 24) == 0L) {
-                println("Register A: $registerA")
+                //println("Register A: $registerA")
                 val newTime = System.currentTimeMillis()
-                println("Took time: ${newTime - time}")
+                //println("Took time: ${newTime - time}")
                 time = newTime
             }
             val registers = registers.copyOf().also { it[0] = registerA }
@@ -198,7 +198,7 @@ fun main() {
         fun search(groupIndex: Int, space: List<Boolean?>): Long? =
             if (groupIndex >= 16) {
                 //if (space.all { it !== null })
-                println(space)
+                //println(space)
                 if (space.subList(46, 48).any { b -> b!! })
                     space.withIndex().sumOf { (i, b) -> (if (b!!) 1L else 0L) shl i }
                 else null
@@ -208,20 +208,20 @@ fun main() {
                 fun bitSpace(index: Int) =
                     space[index]?.let { listOf(it) } ?: bitFullSpace
 
-                println(space)
+                //println(space)
                 (0 until 8).firstNotNullOfOrNull { am8 ->
                     if (groupIndex == 15) {
-                        println("groupIndex=$groupIndex, am8=$am8")
+                        //println("groupIndex=$groupIndex, am8=$am8")
                     }
 
                     val mutableSpace = space.toMutableList()
                     fun checkAndSetSpace(m8: Int, startIndex: Int): Boolean {
-                        println("startIndex=$startIndex")
+                        //println("startIndex=$startIndex")
                         val bits = (0 until 3).map { i -> m8 shr i and 1 == 1 }
-                        println("bits=$bits")
+                        //println("bits=$bits")
                         bits.forEachIndexed { i, b ->
                             val index = startIndex + i
-                            println("i=$i, b=$b, index=$index")
+                            //println("i=$i, b=$b, index=$index")
                             if (index < 48) {
                                 val existing = mutableSpace[index]
                                 if (existing === null)
@@ -240,23 +240,23 @@ fun main() {
                     val involvedUpper = program[groupIndex] xor am8
                     //println("programElement=${program[groupIndex]}, involvedUpper=$involvedUpper")
                     val involvedUpperStartIndex = startIndex + (am8 xor 4)
-                    if (!checkAndSetSpace(involvedUpper, involvedUpperStartIndex).also { println(it) }) return@firstNotNullOfOrNull null
+                    if (!checkAndSetSpace(involvedUpper, involvedUpperStartIndex)/*.also { println(it) }*/) return@firstNotNullOfOrNull null
 
                     search(groupIndex + 1, mutableSpace)
                 }
             }
 
 
-        println("Last group test")
+        //println("Last group test")
         for (a in 0 until 8) {
             val outputE = (a % 8) xor (a shr ((a % 8) xor 4) % 8)
-            println("a=$a, outputE=$outputE")
+            //println("a=$a, outputE=$outputE")
         }
 
         return search(0, intialSpace)!!.also { registerA ->
-            println(registerA.toString(2))
+            //println(registerA.toString(2))
             val output = runProgram(longArrayOf(registerA, 0, 0), program.map { it.to3BitInteger() }).map { it.toInt() }
-            println(output)
+            //println(output)
             //check(output == program)
         }
     }
