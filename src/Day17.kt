@@ -198,8 +198,9 @@ fun main() {
         fun search(groupIndex: Int, space: List<Boolean?>): Long? =
             if (groupIndex >= 16) {
                 //if (space.all { it !== null })
+                println(space)
                 if (space.subList(46, 48).any { b -> b!! })
-                    space.withIndex().sumOf { (i, b) -> (if (b!!) 0L else 1L) shl i }
+                    space.withIndex().sumOf { (i, b) -> (if (b!!) 1L else 0L) shl i }
                 else null
                 //else null
             } else {
@@ -239,9 +240,10 @@ fun main() {
             }
 
         return search(0, intialSpace)!!.also { registerA ->
-            val outputs = runProgram(longArrayOf(registerA, 0, 0), program.map { it.to3BitInteger() }).map { it.toInt() }
-            println(outputs)
-            check(outputs == program)
+            println(registerA.toString(2))
+            val output = runProgram(longArrayOf(registerA, 0, 0), program.map { it.to3BitInteger() }).map { it.toInt() }
+            println(output)
+            check(output == program)
         }
     }
 
