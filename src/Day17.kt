@@ -141,9 +141,10 @@ fun main() {
             runProgram(registers, program) {
                 programIterator.hasNext() &&
                         // `equals` not available for a value class
-                        (it.uByte.also { println("Output: $it") } == programIterator.next().uByte.also { println("Program element: $it") }).also {
+                        it.uByte == programIterator.next().uByte
+                        /*(it.uByte.also { println("Output: $it") } == programIterator.next().uByte.also { println("Program element: $it") }).also {
                             println("Comp result: $it")
-                        }
+                        }*/
             } &&
                     !programIterator.hasNext()// make sure that all the elements are compared
         }
