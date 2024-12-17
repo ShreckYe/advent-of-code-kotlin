@@ -126,11 +126,16 @@ fun main() {
     }
 
     fun part2Search(input: List<String>): Int {
+        var time = System.currentTimeMillis()
         val (registers, program) = processInput(input)
         // To see the debug output, don't use a parallel stream.
         val ans = (1..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
-            if (registerA % 100000000 == 0)
+            if (registerA % (1 shl 24) == 0) {
                 println("Register A: $registerA")
+                val newTime = System.currentTimeMillis()
+                println("Took time: ${newTime - time}")
+                time = newTime
+            }
             val registers = registers.copyOf().also { it[0] = registerA }
             //println(registers.toList())
             //println(program)
@@ -192,5 +197,6 @@ fun main() {
     val testInput2 = readInput("Day17_test2")
     //check(part2Search(testInput2).also { println(it) } == 117440)
     println("Check passed.")
+    // On my computer it takes 0.5s to search 2 ^ 24 runs, so for 2 ^ 48 runs it's impossible to search.
     part2Search(input).println()
 }
