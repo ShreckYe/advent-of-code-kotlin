@@ -222,7 +222,8 @@ fun main() {
                                     mutableSpace[index] = b
                                 else if (existing != b)
                                     return false
-                            }
+                            } else if (!b) // Bits above 48 can only be 0.
+                                return false
                         }
                         return true
                     }
