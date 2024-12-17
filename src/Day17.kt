@@ -180,6 +180,8 @@ fun main() {
         Instruction 7 (3,0): if a / (2 ^ 3) != 0 set IP to 0
 
         Therefore, the bit length of initial `a` is 46 to 48.
+
+        Discovery: for the output, only `a`'s low 10 bits are involved as `(a mod 8) xor 4)` maximizes at 7.
          */
     }
 
