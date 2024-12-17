@@ -181,7 +181,7 @@ fun main() {
 
         Therefore, the bit length of initial `a` is 46 to 48.
 
-        Discovery: for the output, only `a`'s low 10 bits are involved as `(a mod 8) xor 4)` maximizes at 7.
+        Discovery: for the output, only `a`'s low 10 bits are involved as `(a mod 8) xor 4)` maximizes at 7, and only 3 bits out of them are involved, depending on `a mod 8`.
          */
     }
 
