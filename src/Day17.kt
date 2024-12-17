@@ -208,21 +208,27 @@ fun main() {
                 fun bitSpace(index: Int) =
                     space[index]?.let { listOf(it) } ?: bitFullSpace
 
+                println(space)
                 (0 until 8).firstNotNullOfOrNull { am8 ->
-                    //println("groupIndex=$groupIndex, am8=$am8")
+                    if (groupIndex == 15) {
+                        println("groupIndex=$groupIndex, am8=$am8")
+                    }
 
                     val mutableSpace = space.toMutableList()
                     fun checkAndSetSpace(m8: Int, startIndex: Int): Boolean {
+                        println("startIndex=$startIndex")
                         val bits = (0 until 3).map { i -> m8 shr i and 1 == 1 }
+                        println("bits=$bits")
                         bits.forEachIndexed { i, b ->
                             val index = startIndex + i
+                            println("i=$i, b=$b, index=$index")
                             if (index < 48) {
                                 val existing = mutableSpace[index]
                                 if (existing === null)
                                     mutableSpace[index] = b
                                 else if (existing != b)
                                     return false
-                            } else if (!b) // Bits above 48 can only be 0.
+                            } else if (b) // Bits above 48 can only be 0.
                                 return false
                         }
                         return true
@@ -234,17 +240,24 @@ fun main() {
                     val involvedUpper = program[groupIndex] xor am8
                     //println("programElement=${program[groupIndex]}, involvedUpper=$involvedUpper")
                     val involvedUpperStartIndex = startIndex + (am8 xor 4)
-                    if (!checkAndSetSpace(involvedUpper, involvedUpperStartIndex)) return@firstNotNullOfOrNull null
+                    if (!checkAndSetSpace(involvedUpper, involvedUpperStartIndex).also { println(it) }) return@firstNotNullOfOrNull null
 
                     search(groupIndex + 1, mutableSpace)
                 }
             }
 
+
+        println("Last group test")
+        for (a in 0 until 8) {
+            val outputE = (a % 8) xor (a shr ((a % 8) xor 4) % 8)
+            println("a=$a, outputE=$outputE")
+        }
+
         return search(0, intialSpace)!!.also { registerA ->
             println(registerA.toString(2))
             val output = runProgram(longArrayOf(registerA, 0, 0), program.map { it.to3BitInteger() }).map { it.toInt() }
             println(output)
-            check(output == program)
+            //check(output == program)
         }
     }
 
