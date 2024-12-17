@@ -1,4 +1,5 @@
 import kotlin.math.pow
+import kotlin.streams.asStream
 
 @JvmInline
 value class `3BitInteger`(val uByte: UByte) {
@@ -28,12 +29,15 @@ fun Int.to3BitInteger() =
     `3BitInteger`(toUByte())
 
 fun main() {
-    fun part1(input: List<String>): String {
+    fun processInput(input: List<String>): Pair<IntArray, List<`3BitInteger`>> {
         //val emptyLineIndex = input.indexOf("")
         val registers = input.asSequence().take(3).map { it.substringAfter(": ").toInt() }.toList()
             .toIntArray() // TODO `BigInteger` instead?
         val program = input[4].substringAfter(": ").splitToSequence(',').map { it.to3BitInteger() }.toList()
+        return Pair(registers, program)
+    }
 
+    fun runProgram(registers: IntArray, program: List<`3BitInteger`>, onOutput: (`3BitInteger`) -> Unit = {}): List<`3BitInteger`> {
         var outputs = mutableListOf<`3BitInteger`>()
 
         var ip = 0
@@ -81,11 +85,24 @@ fun main() {
                 ip += 2
         }
 
-        return outputs.joinToString(",")
+        return outputs
+    }
+
+    fun part1(input: List<String>): String {
+        val (registers, program) = processInput(input)
+        return runProgram(registers, program).joinToString(",")
     }
 
     fun part2(input: List<String>): Int {
-        return input.size
+        val (registers, program) = processInput(input)
+        val ans = (0..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
+            val registers = registers.copyOf().also { it[0] = registerA }
+            //println(registers.toList())
+            //println(program)
+            runProgram(registers, program).map { it.uByte } == program.map { it.uByte } // TODO `map` needed?
+        }.findFirst().get()
+
+        return ans
     }
 
     // Test if implementation meets criteria from the description, like:
@@ -99,6 +116,8 @@ fun main() {
     val input = readInput("Day17")
     part1(input).println()
 
-    check(part2(testInput) == 1) // TODO note that the test input might be different
+    val testInput2 = readInput("Day17_test2")
+    check(part2(testInput2) == 117440)
+    println("Check passed.")
     part2(input).println()
 }
