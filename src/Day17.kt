@@ -113,8 +113,9 @@ fun main() {
 
     fun part2(input: List<String>): Int {
         val (registers, program) = processInput(input)
-        val ans = (0..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
-            //println("Register A: $registerA")
+        val ans = (1..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
+            if (registerA % 100000000 == 0)
+                println("Register A: $registerA")
             val registers = registers.copyOf().also { it[0] = registerA }
             //println(registers.toList())
             //println(program)
