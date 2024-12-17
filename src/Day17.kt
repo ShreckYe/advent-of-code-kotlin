@@ -192,7 +192,9 @@ fun main() {
         fun search(groupIndex: Int, space: List<Boolean?>): Long? =
             if (groupIndex >= 16) {
                 //if (space.all { it !== null })
-                space.withIndex().sumOf { (i, b) -> (if (b!!) 0L else 1L) shl i }
+                if (space.subList(46, 48).any { b -> b!! })
+                    space.withIndex().sumOf { (i, b) -> (if (b!!) 0L else 1L) shl i }
+                else null
                 //else null
             } else {
                 // not used
