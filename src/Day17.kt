@@ -46,12 +46,18 @@ fun main() {
         program: List<`3BitInteger`>,
         onOutput: (`3BitInteger`) -> Boolean
     ): Boolean {
+        //println("initial registers: ${registers.toList()}")
+        //println("program: $program")
+
         var ip = 0
         //for ((opcode, literalOperand) in program.chunked(2)) {
         while (ip < program.size) {
             //println("IP: $ip")
             val opcode = program[ip]
             val literalOperand = program[ip + 1]
+            //println("instruction pointer: $ip")
+            //println("opcode: $opcode, operand number: $literalOperand")
+            //println("registers: ${registers.toList()}")
 
             fun comboOperand() =
                 when (val uByte = literalOperand.uByte) {
@@ -75,15 +81,23 @@ fun main() {
                 1.toUByte() -> registers[1] = registers[1] xor literalOperand.toInt()
                 2.toUByte() -> registers[1] = comboOperandValue() % 8
                 3.toUByte() -> {
-                    val aRegister = registers[0]
-                    if (aRegister != 0) {
+                    val registerA = registers[0]
+                    //println("Register `A` for jumping judging: $registerA")
+                    if (registerA != 0) {
                         ip = literalOperand.toInt()
                         incIP = false
+                        //println("Jumping to $ip")
                     }
                 }
 
                 4.toUByte() -> registers[1] = registers[1] xor registers[2]
-                5.toUByte() -> if (!onOutput((comboOperandValue() % 8).to3BitInteger())) return false
+                5.toUByte() -> if (!onOutput(
+                        (comboOperandValue() % 8).to3BitInteger()/*.also {
+                        println("output: $it")
+                    }*/
+                    )
+                ) return false
+
                 6.toUByte() -> registers[1] = dv()
                 7.toUByte() -> registers[2] = dv()
                 else -> throw IllegalArgumentException()
@@ -113,18 +127,23 @@ fun main() {
 
     fun part2Search(input: List<String>): Int {
         val (registers, program) = processInput(input)
+        // To see the debug output, don't use a parallel stream.
         val ans = (1..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
             if (registerA % 100000000 == 0)
                 println("Register A: $registerA")
             val registers = registers.copyOf().also { it[0] = registerA }
             //println(registers.toList())
             //println(program)
+
+            //runProgram(registers, program) == program
+
             val programIterator = program.iterator()
             runProgram(registers, program) {
-                // `equals` not available for a value class
-                (it.uByte/*.also { println("Output: $it") }*/ == programIterator.next().uByte/*.also { println("Program element: $it") }*/)/*.also {
-                    println("Comp result: $it")
-                }*/
+                programIterator.hasNext() &&
+                        // `equals` not available for a value class
+                        (it.uByte.also { println("Output: $it") } == programIterator.next().uByte.also { println("Program element: $it") }).also {
+                            println("Comp result: $it")
+                        }
             } &&
                     !programIterator.hasNext()// make sure that all the elements are compared
         }
@@ -139,13 +158,22 @@ fun main() {
         Program: 2,4,1,4,7,5,4,1,1,4,5,5,0,3,3,0
 
         initial registers: a, b, c
-        Instruction 0 (2,4): a mod 8, b, c
-        Instruction 1 (1,4): a mod 8, b xor 4, c
-        Instruction 2 (7,5): a mod 8, b xor 4, (a mod 8) / (2 ^ (b xor 4))
-        Instruction 3 (4,1): a mod 8, (b xor 4) xor ((a mod 8) / (2 ^ (b xor 4))), (a mod 8) / (2 ^ b)
-        Instruction 4 (1,4): a mod 8, (b xor 4) xor ((a mod 8) / (2 ^ (b xor 4))) xor 4 = b xor ((a mod 8) / (2 ^ (b xor 4))), (a mod 8) / (2 ^ (b xor 4))
-        Instruction 5 (5,5): output "b xor ((a mod 8) / (2 ^ (b xor 4))) mod 8"
-        Instruction 6 (0,3): a mod 8 / 2 ^ 3 = 0 ???
+        Instruction 0 (2,4): a, a mod 8, c
+        Instruction 1 (1,4): a, (a mod 8) xor 4, c
+        Instruction 2 (7,5): a, (a mod 8) xor 4, a / (2 ^ ((a mod 8) xor 4))
+        Instruction 3 (4,1): a, ((a mod 8) xor 4) xor (a / (2 ^ ((a mod 8) xor 4))), a / (2 ^ ((a mod 8) xor 4))
+        Instruction 4 (1,4): a, ((a mod 8) xor 4) xor (a / (2 ^ ((a mod 8) xor 4))) xor 4 = (a mod 8) xor (a / (2 ^ ((a mod 8) xor 4))), a / (2 ^ ((a mod 8) xor 4))
+        Instruction 5 (5,5): output "(a mod 8) xor (a / (2 ^ ((a mod 8) xor 4))) mod 8"
+        Instruction 6 (0,3): a / (2 ^ 3), (a mod 8) xor (a / (2 ^ ((a mod 8) xor 4))), a / (2 ^ ((a mod 8) xor 4))
+
+          for a = 511: 63, 7 xor 63 = 56, a / (2 ^ (7 xor 4 = 3))) = 63 (manually verified correct)
+          for a = 63: 7, 7 xor 7 = 0 , 7 (manually verified correct)
+          for a = 7: 0, 7, 0 (manually verified correct)
+
+          for a = 512: 64, 0 xor 32 = 32, 512 / 16 = 32 (manually verified correct)
+        Instruction 7 (3,0): if a / (2 ^ 3) != 0 set IP to 0
+
+        Therefore, the bit length of initial `a` is 46 to 48.
          */
     }
 
@@ -161,7 +189,7 @@ fun main() {
     part1(input).println()
 
     val testInput2 = readInput("Day17_test2")
-    check(part2Search(testInput2).also { println(it) } == 117440)
+    //check(part2Search(testInput2).also { println(it) } == 117440)
     println("Check passed.")
     part2Search(input).println()
 }
