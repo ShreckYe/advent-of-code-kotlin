@@ -202,7 +202,7 @@ fun main() {
                     space[index]?.let { listOf(it) } ?: bitFullSpace
 
                 (0 until 8).firstNotNullOfOrNull { am8 ->
-                    println("groupIndex=$groupIndex, am8=$am8")
+                    //println("groupIndex=$groupIndex, am8=$am8")
 
                     val mutableSpace = space.toMutableList()
                     fun checkAndSetSpace(m8: Int, startIndex: Int): Boolean {
@@ -224,7 +224,7 @@ fun main() {
                     if (!checkAndSetSpace(am8, startIndex)) return@firstNotNullOfOrNull null
 
                     val involvedUpper = program[groupIndex] xor am8
-                    println("programElement=${program[groupIndex]}, involvedUpper=$involvedUpper")
+                    //println("programElement=${program[groupIndex]}, involvedUpper=$involvedUpper")
                     val involvedUpperStartIndex = startIndex + (am8 xor 4)
                     if (!checkAndSetSpace(involvedUpper, involvedUpperStartIndex)) return@firstNotNullOfOrNull null
 
