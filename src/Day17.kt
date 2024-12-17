@@ -29,20 +29,25 @@ fun Int.pow(n: Int) =
 fun `3BitInteger`.toInt() =
     uByte.toInt()
 
+fun `3BitInteger`.toLong() =
+    uByte.toLong()
+
 fun Int.to3BitInteger() =
     `3BitInteger`(toUByte())
 
+fun Long.to3BitInteger() =
+    `3BitInteger`(toUByte())
+
 fun main() {
-    fun processInput(input: List<String>): Pair<IntArray, List<`3BitInteger`>> {
+    fun processInput(input: List<String>): Pair<LongArray, List<`3BitInteger`>> {
         //val emptyLineIndex = input.indexOf("")
-        val registers = input.asSequence().take(3).map { it.substringAfter(": ").toInt() }.toList()
-            .toIntArray() // TODO `BigInteger` instead?
+        val registers = input.asSequence().take(3).map { it.substringAfter(": ").toLong() }.toList().toLongArray()
         val program = input[4].substringAfter(": ").splitToSequence(',').map { it.to3BitInteger() }.toList()
-        return Pair(registers, program)
+        return registers to program
     }
 
     fun runProgram(
-        registers: IntArray,
+        registers: LongArray,
         program: List<`3BitInteger`>,
         onOutput: (`3BitInteger`) -> Boolean
     ): Boolean {
@@ -69,21 +74,21 @@ fun main() {
 
             fun comboOperandValue() =
                 when (val comboOperand = comboOperand()) {
-                    is ComboOperand.Value -> comboOperand.value.toInt()
+                    is ComboOperand.Value -> comboOperand.value.toLong()
                     is ComboOperand.Register -> registers[comboOperand.index]
                 }
 
             var incIP = true
             fun dv() =
-                registers[0] / 2.pow(comboOperandValue())
+                registers[0] / 2.pow(comboOperandValue().toInt())
             when (opcode.uByte) {
                 0.toUByte() -> registers[0] = dv()
-                1.toUByte() -> registers[1] = registers[1] xor literalOperand.toInt()
+                1.toUByte() -> registers[1] = registers[1] xor literalOperand.toLong()
                 2.toUByte() -> registers[1] = comboOperandValue() % 8
                 3.toUByte() -> {
                     val registerA = registers[0]
                     //println("Register `A` for jumping judging: $registerA")
-                    if (registerA != 0) {
+                    if (registerA != 0L) {
                         ip = literalOperand.toInt()
                         incIP = false
                         //println("Jumping to $ip")
@@ -109,7 +114,7 @@ fun main() {
     }
 
     fun runProgram(
-        registers: IntArray,
+        registers: LongArray,
         program: List<`3BitInteger`>
     ): List<`3BitInteger`> {
         val outputs = mutableListOf<`3BitInteger`>()
@@ -130,7 +135,8 @@ fun main() {
         var time = System.currentTimeMillis()
         // To see the debug output, don't use a parallel stream.
         val ans = (1..Int.MAX_VALUE).asSequence().asStream().parallel().filter { registerA ->
-            if (registerA % (1 shl 24) == 0) {
+            val registerA = registerA.toLong()
+            if (registerA % (1 shl 24) == 0L) {
                 println("Register A: $registerA")
                 val newTime = System.currentTimeMillis()
                 println("Took time: ${newTime - time}")
@@ -232,7 +238,11 @@ fun main() {
                 }
             }
 
-        return search(0, intialSpace)!!
+        return search(0, intialSpace)!!.also { registerA ->
+            val outputs = runProgram(longArrayOf(registerA, 0, 0), program.map { it.to3BitInteger() }).map { it.toInt() }
+            println(outputs)
+            check(outputs == program)
+        }
     }
 
     // Test if implementation meets criteria from the description, like:
