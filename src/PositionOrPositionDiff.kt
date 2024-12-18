@@ -46,6 +46,7 @@ operator fun <T> List<MutableList<T>>.set(p: Position, value: T) {
     this[p.i][p.j] = value
 }
 
+@JvmName("getListOfString")
 operator fun List<String>.get(p: Position) =
     this[p.i][p.j]
 
@@ -69,5 +70,13 @@ operator fun List<IntArray>.get(p: Position) =
     this[p.i][p.j]
 
 operator fun List<IntArray>.set(p: Position, value: Int) {
+    this[p.i][p.j] = value
+}
+
+@JvmName("getListOfCharArray")
+operator fun List<CharArray>.get(p: Position) =
+    this[p.i][p.j]
+
+operator fun List<CharArray>.set(p: Position, value: Char) {
     this[p.i][p.j] = value
 }
