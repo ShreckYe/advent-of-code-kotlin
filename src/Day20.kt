@@ -1,34 +1,42 @@
 fun main() {
+
+    fun distancesOfNulls(input: List<String>) =
+        input.map { Array<Int?>(it.length) { null } }
+
+    // `-Xss1G` needed TODO why?
+    fun bfsSetDistances(
+        input: List<String>,
+        ps: List<Position>,
+        distances: List<Array<Int?>>,
+        distance: Int,
+        isNewDistance: (Char, Int?, Int) -> Boolean
+    ) {
+        //println(ps)
+        if (ps.isNotEmpty()) {
+            val nextPs = ps.flatMap { p ->
+                val c = input.getOrNull(p.i)?.getOrNull(p.j)
+                if (c !== null && isNewDistance(c, distances[p], distance)) {
+                    distances[p] = distance
+                    Direction.entries.map { direction -> p + direction.diff }
+                } else emptyList()
+            }
+                .distinct()
+            bfsSetDistances(input, nextPs, distances, distance + 1, isNewDistance)
+        }
+    }
+
+    fun distancesFrom(input: List<String>, p: Position): List<Array<Int?>> {
+        val distances = distancesOfNulls(input)
+        bfsSetDistances(input, listOf(p), distances, 0) { c, old, _ -> c != '#' && old === null }
+        return distances
+    }
+
     fun processDistances(input: List<String>): Triple<List<Array<Int?>>, List<Array<Int?>>, Int> {
         val sPosition = input.positionOf('S')
         val ePosition = input.positionOf('E')
 
-        fun distancesFrom(p: Position): List<Array<Int?>> {
-            val distances = input.map { Array<Int?>(it.length) { null } }
-
-            // `-Xss1G` needed TODO why?
-            fun setDistances(ps: List<Position>, distance: Int) {
-                //println(ps)
-                if (ps.isNotEmpty()) {
-                    val nexts = ps.flatMap { p ->
-                        val c = input.getOrNull(p.i)?.getOrNull(p.j)
-                        if (c.isHabitable() && distances[p] === null) {
-                            distances[p] = distance
-                            Direction.entries.map { direction -> p + direction.diff }
-                        } else emptyList()
-                    }
-                        .distinct()
-                    setDistances(nexts, distance + 1)
-                }
-            }
-
-            setDistances(listOf(p), 0)
-
-            return distances
-        }
-
-        val distancesFromS = distancesFrom(sPosition)
-        val distancesFromE = distancesFrom(ePosition)
+        val distancesFromS = distancesFrom(input, sPosition)
+        val distancesFromE = distancesFrom(input, ePosition)
         //println(distancesFromS.joinToString("\n", postfix = "\n") {it.toList().toString()})
         //println(distancesFromE.joinToString("\n", postfix = "\n") { it.toList().toString()})
 
@@ -58,7 +66,7 @@ fun main() {
     }
 
     fun part2(input: List<String>, leastNumSecondsSaved: Int): Int {
-        println(leastNumSecondsSaved)
+        //println(leastNumSecondsSaved)
         val (distancesFromS, distancesFromE, sToEDistance) = processDistances(input)
 
         val cheatStartMap = input.map { it.toCharArray() }
@@ -68,36 +76,76 @@ fun main() {
                 if (sDistance !== null) {
                     val p = Position(i, j)
 
-                    val cheats = (1..20).flatMap { diffSum ->
-                        (0..20).mapNotNull { iDiff ->
-                            val jDiff = diffSum - iDiff
-                            val end = p + PositionDiff(iDiff, jDiff)
-                            if (input.getOrNull(end.i)?.getOrNull(end.j).isHabitable()) diffSum to end
-                            else null
+                    // This is incorrect: "start position (the position where the cheat is activated, just before the first move that is allowed to go through walls)"
+                    val cheats = Direction.entries.flatMap {
+                        val wallP = p + it.diff
+                        if (input.getOrNull(wallP) == '#')
+                            (0..19).flatMap { diffSum ->
+                                (0..19).mapNotNull { iDiff ->
+                                    val jDiff = diffSum - iDiff
+                                    val end = wallP + PositionDiff(iDiff, jDiff)
+                                    if (input.getOrNull(end.i)?.getOrNull(end.j).isHabitable()) diffSum + 1 to end
+                                    else null
+                                }
+                            }
+                        else
+                            emptyList()
+                    }
+                        .groupBy { it.second }
+                        .mapValues { it.value.minBy { it.first } }
+                        .values
+                        .filter { it.second != p } // This can actually be omitted
+
+
+                    /*
+                    val cheatDistances = distancesOfNulls(input)
+                    cheatDistances[p] = 0
+                    for (direction in Direction.entries) {
+                        val np = p + direction.diff
+                        val nc = input.getOrNull(np)
+                        if (nc == '#')
+                            bfsSetDistances(
+                                input,
+                                listOf(np),
+                                cheatDistances,
+                                1
+                            ) { _, old, new ->
+                                //println("$old $new")
+                                new <= 20 && (old === null || new < old)
+                            }
+                    }
+                    println(cheatDistances.intDistancesString())
+
+                    val cheats = cheatDistances.withIndex().flatMap { (i, line) ->
+                        // TODO filter out 0?
+                        line.withIndex().asSequence().filter { it.value !== null }.mapNotNull { (j, distance) ->
+                            val p = Position(i, j)
+                            input.getOrNull(p)?.let { distance!! to p }
                         }
                     }
+                    */
 
-                    cheats.count { (diffSum, cheatEndP) ->
-                        (sToEDistance - (sDistance + diffSum + distancesFromE[cheatEndP]!!) >= leastNumSecondsSaved).also {
+                    cheats.count { (distance, cheatEndP) ->
+                        (sToEDistance - (sDistance + distance + distancesFromE[cheatEndP]!!) >= leastNumSecondsSaved)/*.also {
                             if (it) {
-                                println("$sToEDistance $sDistance $p $diffSum $cheatEndP ${distancesFromE[cheatEndP]!!} ${(sDistance + diffSum + distancesFromE[cheatEndP]!!)}")
+                                println("$sToEDistance $sDistance $p $distance $cheatEndP ${distancesFromE[cheatEndP]!!} ${(sDistance + distance + distancesFromE[cheatEndP]!!)}")
 
                                 printMap(input.map { it.toCharArray() }.also {
                                     it[p] = '0'
-                                    it[cheatEndP] = diffSum.digitToChar(16)
+                                    it[cheatEndP] = distance.coerceAtMost(15).digitToChar(16)
                                 })
 
                                 cheatStartMap[p] = 'c'
                                 cheatEndMap[cheatEndP] = 'C'
                             }
-                        }
+                        }*/
                     }
                 } else 0
             }
         }
 
-        printMap(cheatStartMap)
-        printMap(cheatEndMap)
+        //printMap(cheatStartMap)
+        //printMap(cheatEndMap)
 
         return ans
     }
@@ -113,7 +161,7 @@ fun main() {
     val input = readInput("Day20")
     part1(input, 100).println()
 
-    check(part2(testInput, 72).also { println(it) } == 29)
+    check(part2(testInput, 72)/*.also { println(it) }*/ == 29)
     check(part2(testInput, 74) == 7)
     check(part2(testInput, 76) == 3)
     part2(input, 100).println()

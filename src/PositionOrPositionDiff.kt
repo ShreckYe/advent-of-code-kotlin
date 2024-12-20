@@ -52,6 +52,10 @@ operator fun <T> List<MutableList<T>>.set(p: Position, value: T) {
 operator fun List<String>.get(p: Position) =
     this[p.i][p.j]
 
+@JvmName("getOrNullListOfString")
+fun List<String>.getOrNull(p: Position) =
+    this.getOrNull(p.i)?.getOrNull(p.j)
+
 @JvmName("getListOfArray")
 operator fun <T> List<Array<T>>.get(p: Position) =
     this[p.i][p.j]
@@ -78,6 +82,10 @@ operator fun List<IntArray>.set(p: Position, value: Int) {
 @JvmName("getListOfCharArray")
 operator fun List<CharArray>.get(p: Position) =
     this[p.i][p.j]
+
+@JvmName("getOrNullListOfCharArray")
+fun List<CharArray>.getOrNull(p: Position) =
+    this.getOrNull(p.i)?.getOrNull(p.j)
 
 operator fun List<CharArray>.set(p: Position, value: Char) {
     this[p.i][p.j] = value
