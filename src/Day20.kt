@@ -66,7 +66,7 @@ fun main() {
     }
 
     fun part2(input: List<String>, leastNumSecondsSaved: Int): Int {
-        println(leastNumSecondsSaved)
+        //println(leastNumSecondsSaved)
         val (distancesFromS, distancesFromE, sToEDistance) = processDistances(input)
 
         val cheatStartMap = input.map { it.toCharArray() }
@@ -76,34 +76,18 @@ fun main() {
                 if (sDistance !== null) {
                     val p = Position(i, j)
 
-                    val cheats = Direction.entries.flatMap { direction ->
-                        val firstWallP = p + direction.diff
-                        /*if (p == Position(1, 3) && firstWallP == Position(2, 3))
-                            println("(1, 3) via (2, 3): $direction $firstWallP ${input.getOrNull(firstWallP)}")*/
-                        //if (input.getOrNull(firstWallP) == '#')
-                        (0..19).flatMap { diffSum ->
-                            (0..diffSum).flatMap { iDiff ->
-                                val jDiff = diffSum - iDiff
-                                listOf(iDiff, -iDiff).flatMap { iDiff ->
-                                    listOf(jDiff, -jDiff).mapNotNull { jDiff ->
-                                        val end = firstWallP + PositionDiff(iDiff, jDiff)
-                                        /*if (p == Position(1, 3) && end == Position(7, 3))
-                                            println("(1, 3) to (7, 3): $direction $firstWallP $diffSum $iDiff $jDiff")*/
-                                        if (input.getOrNull(end.i)?.getOrNull(end.j).isHabitable())
-                                            diffSum + 1 to end
-                                        else null
-                                    }
+                    val cheats = (1..20).flatMap { diffSum ->
+                        (0..diffSum).flatMap { iDiff ->
+                            val jDiff = diffSum - iDiff
+                            listOf(iDiff, -iDiff).distinct().flatMap { iDiff ->
+                                listOf(jDiff, -jDiff).distinct().mapNotNull { jDiff ->
+                                    val end = p + PositionDiff(iDiff, jDiff)
+                                    if (input.getOrNull(end.i)?.getOrNull(end.j).isHabitable()) diffSum to end
+                                    else null
                                 }
                             }
                         }
-                        /*else
-                            emptyList()*/
                     }
-                        .groupBy { it.second }
-                        .mapValues { it.value.minBy { it.first } }
-                        .values
-                        .filter { it.second != p } // This can actually be omitted
-
 
                     /*
                     val cheatDistances = distancesOfNulls(input)
@@ -136,14 +120,14 @@ fun main() {
                     cheats.count { (distance, cheatEndP) ->
                         (sToEDistance - (sDistance + distance + distancesFromE[cheatEndP]!!) >= leastNumSecondsSaved).also {
                             if (it) {
-                                if (sDistance + distance + distancesFromE[cheatEndP]!! == 12) {
+                                /*if (sDistance + distance + distancesFromE[cheatEndP]!! == 12) {
                                     println("$sToEDistance $sDistance $p $distance $cheatEndP ${distancesFromE[cheatEndP]!!} ${sDistance + distance + distancesFromE[cheatEndP]!!}")
 
                                     printMap(input.map { it.toCharArray() }.also {
                                         it[p] = '0'
                                         it[cheatEndP] = distance.coerceAtMost(9).digitToChar()
                                     })
-                                }
+                                }*/
                                 cheatStartMap[p] = 'c'
                                 cheatEndMap[cheatEndP] = 'C'
                             }
@@ -153,8 +137,8 @@ fun main() {
             }
         }
 
-        printMap(cheatStartMap)
-        printMap(cheatEndMap)
+        //printMap(cheatStartMap)
+        //printMap(cheatEndMap)
 
         return ans
     }
@@ -172,9 +156,9 @@ fun main() {
 
     check(part2(testInput, 76) == 3)
     check(part2(testInput, 74) == 7)
-    check(part2(testInput, 72).also { println(it) } == 29)
-    check(part2(testInput, 70).also { println(it) } == 41)
-    check(part2(testInput, 68).also { println(it) } == 55)
+    check(part2(testInput, 72)/*.also { println(it) }*/ == 29)
+    check(part2(testInput, 70)/*.also { println(it) }*/ == 41)
+    check(part2(testInput, 68)/*.also { println(it) }*/ == 55)
 
     part2(input, 100).println()
 }
