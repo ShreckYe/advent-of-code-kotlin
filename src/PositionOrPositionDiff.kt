@@ -80,3 +80,11 @@ operator fun List<CharArray>.get(p: Position) =
 operator fun List<CharArray>.set(p: Position, value: Char) {
     this[p.i][p.j] = value
 }
+
+
+fun List<String>.positionOf(c: Char) =
+    withIndex().asSequence().mapNotNull { (i, line) ->
+        line.indexOf(c).let { j ->
+            if (j != -1) Position(i, j) else null
+        }
+    }.first()
