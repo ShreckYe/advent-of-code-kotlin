@@ -66,7 +66,7 @@ fun main() {
     }
 
     fun part2(input: List<String>, leastNumSecondsSaved: Int): Int {
-        //println(leastNumSecondsSaved)
+        println(leastNumSecondsSaved)
         val (distancesFromS, distancesFromE, sToEDistance) = processDistances(input)
 
         val cheatStartMap = input.map { it.toCharArray() }
@@ -126,7 +126,7 @@ fun main() {
                     */
 
                     cheats.count { (distance, cheatEndP) ->
-                        (sToEDistance - (sDistance + distance + distancesFromE[cheatEndP]!!) >= leastNumSecondsSaved)/*.also {
+                        (sToEDistance - (sDistance + distance + distancesFromE[cheatEndP]!!) >= leastNumSecondsSaved).also {
                             if (it) {
                                 println("$sToEDistance $sDistance $p $distance $cheatEndP ${distancesFromE[cheatEndP]!!} ${(sDistance + distance + distancesFromE[cheatEndP]!!)}")
 
@@ -138,14 +138,14 @@ fun main() {
                                 cheatStartMap[p] = 'c'
                                 cheatEndMap[cheatEndP] = 'C'
                             }
-                        }*/
+                        }
                     }
                 } else 0
             }
         }
 
-        //printMap(cheatStartMap)
-        //printMap(cheatEndMap)
+        printMap(cheatStartMap)
+        printMap(cheatEndMap)
 
         return ans
     }
