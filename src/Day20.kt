@@ -58,8 +58,11 @@ fun main() {
     }
 
     fun part2(input: List<String>, leastNumSecondsSaved: Int): Int {
+        println(leastNumSecondsSaved)
         val (distancesFromS, distancesFromE, sToEDistance) = processDistances(input)
 
+        val cheatStartMap = input.map { it.toCharArray() }
+        val cheatEndMap = input.map { it.toCharArray() }
         val ans = distancesFromS.withIndex().sumOf { (i, line) ->
             line.withIndex().sumOf { (j, sDistance) ->
                 if (sDistance !== null) {
@@ -75,11 +78,26 @@ fun main() {
                     }
 
                     cheats.count { (diffSum, cheatEndP) ->
-                        sToEDistance - (sDistance + diffSum + distancesFromE[cheatEndP]!!) >= leastNumSecondsSaved
+                        (sToEDistance - (sDistance + diffSum + distancesFromE[cheatEndP]!!) >= leastNumSecondsSaved).also {
+                            if (it) {
+                                println("$sToEDistance $sDistance $p $diffSum $cheatEndP ${distancesFromE[cheatEndP]!!} ${(sDistance + diffSum + distancesFromE[cheatEndP]!!)}")
+
+                                printMap(input.map { it.toCharArray() }.also {
+                                    it[p] = '0'
+                                    it[cheatEndP] = diffSum.digitToChar(16)
+                                })
+
+                                cheatStartMap[p] = 'c'
+                                cheatEndMap[cheatEndP] = 'C'
+                            }
+                        }
                     }
                 } else 0
             }
         }
+
+        printMap(cheatStartMap)
+        printMap(cheatEndMap)
 
         return ans
     }
@@ -95,6 +113,7 @@ fun main() {
     val input = readInput("Day20")
     part1(input, 100).println()
 
+    check(part2(testInput, 72).also { println(it) } == 29)
     check(part2(testInput, 74) == 7)
     check(part2(testInput, 76) == 3)
     part2(input, 100).println()
