@@ -86,8 +86,8 @@ fun main() {
                                     listOf(iDiff, -iDiff).flatMap { iDiff ->
                                         listOf(jDiff, -jDiff).mapNotNull { jDiff ->
                                             val end = firstWallP + PositionDiff(iDiff, jDiff)
-                                            if (p == Position(1, 3) && end == Position(8, 3))
-                                                println("(1, 3) to (8, 3): $direction $firstWallP $diffSum $iDiff $jDiff")
+                                            /*if (p == Position(1, 3) && end == Position(8, 3))
+                                                println("(1, 3) to (8, 3): $direction $firstWallP $diffSum $iDiff $jDiff")*/
                                             if (input.getOrNull(end.i)?.getOrNull(end.j).isHabitable())
                                                 diffSum + 1 to end
                                             else null
@@ -135,12 +135,13 @@ fun main() {
                     cheats.count { (distance, cheatEndP) ->
                         (sToEDistance - (sDistance + distance + distancesFromE[cheatEndP]!!) >= leastNumSecondsSaved).also {
                             if (it) {
-                                println("$sToEDistance $sDistance $p $distance $cheatEndP ${distancesFromE[cheatEndP]!!} ${(sDistance + distance + distancesFromE[cheatEndP]!!)}")
+                                if (sDistance + distance + distancesFromE[cheatEndP]!! == 12)
+                                    println("$sToEDistance $sDistance $p $distance $cheatEndP ${distancesFromE[cheatEndP]!!} ${sDistance + distance + distancesFromE[cheatEndP]!!}")
 
-                                printMap(input.map { it.toCharArray() }.also {
+                                /*printMap(input.map { it.toCharArray() }.also {
                                     it[p] = '0'
                                     it[cheatEndP] = distance.coerceAtMost(9).digitToChar()
-                                })
+                                })*/
 
                                 cheatStartMap[p] = 'c'
                                 cheatEndMap[cheatEndP] = 'C'
