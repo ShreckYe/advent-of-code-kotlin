@@ -173,9 +173,9 @@ fun main() {
 
     check(part2(testInput, 76) == 3)
     check(part2(testInput, 74) == 7)
-    //check(part2(testInput, 72).also { println(it) } == 29)
-    //check(part2(testInput, 70).also { println(it) } == 41)
-    //check(part2(testInput, 68).also { println(it) } == 55)
+    check(part2(testInput, 72).also { println(it) } == 29)
+    check(part2(testInput, 70).also { println(it) } == 41)
+    check(part2(testInput, 68).also { println(it) } == 55)
 
     part2(input, 100).println()
 }
