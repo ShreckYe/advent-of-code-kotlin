@@ -77,15 +77,22 @@ fun main() {
                     val p = Position(i, j)
 
                     // This is incorrect: "start position (the position where the cheat is activated, just before the first move that is allowed to go through walls)"
-                    val cheats = Direction.entries.flatMap {
-                        val wallP = p + it.diff
-                        if (input.getOrNull(wallP) == '#')
+                    val cheats = Direction.entries.flatMap { direction ->
+                        val firstWallP = p + direction.diff
+                        if (input.getOrNull(firstWallP) == '#')
                             (0..19).flatMap { diffSum ->
-                                (0..19).mapNotNull { iDiff ->
+                                (0..diffSum).flatMap { iDiff ->
                                     val jDiff = diffSum - iDiff
-                                    val end = wallP + PositionDiff(iDiff, jDiff)
-                                    if (input.getOrNull(end.i)?.getOrNull(end.j).isHabitable()) diffSum + 1 to end
-                                    else null
+                                    listOf(iDiff, -iDiff).flatMap { iDiff ->
+                                        listOf(jDiff, -jDiff).mapNotNull { jDiff ->
+                                            val end = firstWallP + PositionDiff(iDiff, jDiff)
+                                            if (p == Position(1, 3) && end == Position(8, 3))
+                                                println("(1, 3) to (8, 3): $direction $firstWallP $diffSum $iDiff $jDiff")
+                                            if (input.getOrNull(end.i)?.getOrNull(end.j).isHabitable())
+                                                diffSum + 1 to end
+                                            else null
+                                        }
+                                    }
                                 }
                             }
                         else
@@ -132,7 +139,7 @@ fun main() {
 
                                 printMap(input.map { it.toCharArray() }.also {
                                     it[p] = '0'
-                                    it[cheatEndP] = distance.coerceAtMost(15).digitToChar(16)
+                                    it[cheatEndP] = distance.coerceAtMost(9).digitToChar()
                                 })
 
                                 cheatStartMap[p] = 'c'
@@ -163,7 +170,7 @@ fun main() {
 
     check(part2(testInput, 76) == 3)
     check(part2(testInput, 74) == 7)
-    check(part2(testInput, 72)/*.also { println(it) }*/ == 29)
+    check(part2(testInput, 72).also { println(it) } == 29)
     check(part2(testInput, 70).also { println(it) } == 41)
 
     part2(input, 100).println()
