@@ -161,8 +161,10 @@ fun main() {
     val input = readInput("Day20")
     part1(input, 100).println()
 
-    check(part2(testInput, 72)/*.also { println(it) }*/ == 29)
-    check(part2(testInput, 74) == 7)
     check(part2(testInput, 76) == 3)
+    check(part2(testInput, 74) == 7)
+    check(part2(testInput, 72)/*.also { println(it) }*/ == 29)
+    check(part2(testInput, 70).also { println(it) } == 41)
+
     part2(input, 100).println()
 }
