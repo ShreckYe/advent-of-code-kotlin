@@ -37,6 +37,8 @@ object DiagonalComparator : Comparator<PositionOrPositionDiff<*>> {
 }
 
 
+// TODO `getOrNull`
+
 @JvmName("getListOfList")
 operator fun <T> List<List<T>>.get(p: Position) =
     this[p.i][p.j]
