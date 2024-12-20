@@ -79,8 +79,8 @@ fun main() {
                     // This is incorrect: "start position (the position where the cheat is activated, just before the first move that is allowed to go through walls)"
                     val cheats = Direction.entries.flatMap { direction ->
                         val firstWallP = p + direction.diff
-                        if (p == Position(1, 3) && firstWallP == Position(2, 3))
-                            println("(1, 3) via (2, 3): $direction $firstWallP ${input.getOrNull(firstWallP)}")
+                        /*if (p == Position(1, 3) && firstWallP == Position(2, 3))
+                            println("(1, 3) via (2, 3): $direction $firstWallP ${input.getOrNull(firstWallP)}")*/
                         if (input.getOrNull(firstWallP) == '#')
                             (0..19).flatMap { diffSum ->
                                 (0..diffSum).flatMap { iDiff ->
@@ -88,8 +88,8 @@ fun main() {
                                     listOf(iDiff, -iDiff).flatMap { iDiff ->
                                         listOf(jDiff, -jDiff).mapNotNull { jDiff ->
                                             val end = firstWallP + PositionDiff(iDiff, jDiff)
-                                            if (p == Position(1, 3) && end == Position(7, 3))
-                                                println("(1, 3) to (7, 3): $direction $firstWallP $diffSum $iDiff $jDiff")
+                                            /*if (p == Position(1, 3) && end == Position(7, 3))
+                                                println("(1, 3) to (7, 3): $direction $firstWallP $diffSum $iDiff $jDiff")*/
                                             if (input.getOrNull(end.i)?.getOrNull(end.j).isHabitable())
                                                 diffSum + 1 to end
                                             else null
