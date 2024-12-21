@@ -224,5 +224,6 @@ fun main() {
     check(part2(testInput, 2).also { println(it) } == 126384)
     // The length ratio after one transformation is about 2.5
     part2(input, 10)
+    // And the result length for an input will be about 1e11
     part2(input, 25).println()
 }
