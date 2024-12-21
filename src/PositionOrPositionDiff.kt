@@ -18,10 +18,14 @@ data class Position(override val i: Int, override val j: Int) : PositionOrPositi
     operator fun plus(other: PositionDiff) =
         Position(i + other.i, j + other.j)
 
+    operator fun minus(other: Position) =
+        PositionDiff(i - other.i, j - other.j)
+
     override fun toString() =
         "($i, $j)"
 }
 
+// TODO `id` and `jd`
 data class PositionDiff(override val i: Int, override val j: Int) : PositionOrPositionDiff<PositionDiff> {
     operator fun plus(other: PositionDiff) =
         PositionDiff(i + other.i, j + other.j)
@@ -95,6 +99,13 @@ operator fun List<CharArray>.set(p: Position, value: Char) {
 fun List<String>.positionOf(c: Char) =
     withIndex().asSequence().mapNotNull { (i, line) ->
         line.indexOf(c).let { j ->
+            if (j != -1) Position(i, j) else null
+        }
+    }.first()
+
+fun <T> List<List<T>>.positionOf(value: T) =
+    withIndex().asSequence().mapNotNull { (i, line) ->
+        line.indexOf(value).let { j ->
             if (j != -1) Position(i, j) else null
         }
     }.first()

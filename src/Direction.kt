@@ -8,6 +8,8 @@ enum class Direction(val diff: PositionDiff) {
     }
 }
 
+val directionChars = listOf('^', '>', 'v', '<')
+
 fun Char.toDirection() =
     when (this) {
         '^' -> Up
@@ -17,6 +19,13 @@ fun Char.toDirection() =
         else -> null
     }
 
+fun Direction.toChar() =
+    when (this) {
+        Up -> '^'
+        Right -> '>'
+        Down -> 'v'
+        Left -> '<'
+    }
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Direction.turnRight90DegreesInline() =

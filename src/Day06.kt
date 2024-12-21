@@ -1,14 +1,12 @@
 import Direction.*
 import java.util.EnumSet
 
-val guardChars = listOf('^', '>', 'v', '<')
-
 fun main() {
     fun part1(input: List<String>): Int {
         val m = input.size
         val n = input[0].length
         val guardPosition = input.asSequence()
-            .mapIndexed { i, s -> i to s.indexOfFirst { it in guardChars } }
+            .mapIndexed { i, s -> i to s.indexOfFirst { it in directionChars } }
             .find { it.second != -1 }!!
 
         var (i, j) = guardPosition
@@ -56,7 +54,7 @@ fun main() {
         val m = input.size
         val n = input[0].length
         val guardPosition = input.asSequence()
-            .mapIndexed { i, s -> i to s.indexOfFirst { it in listOf('^', '>', 'v', '<') } }
+            .mapIndexed { i, s -> i to s.indexOfFirst { it in directionChars } }
             .find { it.second != -1 }!!
 
         fun isLoop(map : List<CharArray>) : Boolean {
@@ -108,7 +106,7 @@ fun main() {
         val ans = (0 until m).sumOf { oi ->
             (0 until n).count { oj ->
                 val oc = input[oi][oj]
-                if (oc in guardChars || oc == '#')
+                if (oc in directionChars || oc == '#')
                     false
                 else {
                     val map = input.map { it.toCharArray() }
