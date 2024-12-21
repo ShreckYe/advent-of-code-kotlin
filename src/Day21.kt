@@ -103,7 +103,8 @@ fun main() {
         acc: StringBuilder,
         keypad: List<List<Char?>>,
         positionMap: Map<Char, Position>,
-        prevC: Char, /*prevResultLastDirection: Direction?,*/
+        prevC: Char,
+        prevResultLastDirection: Direction?,
         from: Int
     ): String =
         if (from == length)
@@ -115,26 +116,26 @@ fun main() {
             val (id, jd) = positionMap.getValue(c) - prevP
 
             val currentSequenceWithoutA: String
-            //val resultLastDirection: Direction
+            val resultLastDirection: Direction?
             when {
                 id == 0 && jd == 0 -> {
                     currentSequenceWithoutA = ""
                     // can't be all `A`s
-                    //resultLastDirection = prevResultLastDirection!!
+                    resultLastDirection = prevResultLastDirection
                 }
 
                 jd == 0 -> {
                     val direction = if (id > 0) Direction.Down else Direction.Up
                     val char = direction.toChar()
                     currentSequenceWithoutA = String(CharArray(abs(id)) { char })
-                    //resultLastDirection = direction
+                    resultLastDirection = direction
                 }
 
                 id == 0 -> {
                     val direction = if (jd > 0) Direction.Right else Direction.Left
                     val char = direction.toChar()
                     currentSequenceWithoutA = String(CharArray(abs(jd)) { char })
-                    //resultLastDirection = direction
+                    resultLastDirection = direction
                 }
 
                 else -> {
@@ -160,35 +161,51 @@ fun main() {
                             // TODO this could be simplified
                         if (!prevP.isPathAllOnButtons(keypad, List(abs(id)) { iDirection })) {
                             assert(prevP.isPathAllOnButtons(keypad, List(abs(jd)) { jDirection }))
+                            resultLastDirection = iDirection
                             jDSequence + iDSequence
                         } else if (!prevP.isPathAllOnButtons(keypad, List(abs(jd)) { jDirection })) {
                             assert(prevP.isPathAllOnButtons(keypad, List(abs(id)) { iDirection }))
+                            resultLastDirection = jDirection
                             iDSequence + jDSequence
                         } else {
-                            if (numStepsIDButtonToA < numStepsJDButtonToA)
+                            // This seems not important anymore
+                            if (numStepsIDButtonToA < numStepsJDButtonToA) {
+                                resultLastDirection = iDirection
                                 jDSequence + iDSequence
-                            else if (numStepsIDButtonToA > numStepsJDButtonToA)
+                            } else if (numStepsIDButtonToA > numStepsJDButtonToA) {
+                                resultLastDirection = jDirection
                                 iDSequence + jDSequence
-                            else {
-                                // The case here can only be "^" and ">" actually, and they are equivalent, even in terms of produced control sequences
+                            } else {
+                                /*
+                                // The below is not true for the numerical keypad.
+
+                                // For the directional keypad, the case here can only be "^" and ">" actually, and they are equivalent, even in terms of produced control sequences.
                                 assert(iDirection == Direction.Up && jDirection == Direction.Right)
                                 // always prefer right first for it's possible that it doesn't change direction
-                                jDSequence + iDSequence
+                                */
+
+                                if (iDirection == prevResultLastDirection) {
+                                    resultLastDirection = jDirection
+                                    iDSequence + jDSequence
+                                } else {
+                                    resultLastDirection = iDirection
+                                    jDSequence + iDSequence
+                                }
                             }
                         }
                 }
             }
 
             acc.append(currentSequenceWithoutA).append('A')
-            bestDirectionalControlSequence(acc, keypad, positionMap, c, /*resultLastDirection,*/from + 1)
+            bestDirectionalControlSequence(acc, keypad, positionMap, c, resultLastDirection, from + 1)
         } else
             throw AssertionError()
 
     fun String.numericalBestDirectionalControlSequence() =
-        bestDirectionalControlSequence(StringBuilder(), numericCharss, numericPositionMap, 'A', 0)
+        bestDirectionalControlSequence(StringBuilder(), numericCharss, numericPositionMap, 'A', null, 0)
 
     fun String.directionalBestDirectionalControlSequence() =
-        bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, 'A', 0)
+        bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, 'A', null, 0)
 
     fun String.directionalTransforms(num: Int): String =
         if (num == 0)
@@ -213,7 +230,7 @@ fun main() {
 
     fun part2Optimized(input: List<String>, numRobotDirectionalKeypads: Int): Long {
         fun String.directionalBestDirectionalControlSequence(prevC: Char) =
-            bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, prevC, 0)
+            bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, prevC, null, 0)
 
         fun String.directionalTransforms(prevC: Char, num: Int): String =
             if (num == 0)
@@ -242,13 +259,15 @@ fun main() {
             val halfTransSequence = ('A' + firstControlSequence).asSequence().zipWithNext { prevC, c ->
                 halfTransforms.getValue(prevC to c)
             }.joinToString("")
-            assert(halfTransSequence/*.also {
+            assert(
+                halfTransSequence/*.also {
                 println(it.take(100))
                 println(it.length)
             }*/ == firstControlSequence.directionalTransforms(numHalf)/*.also {
                 println(it.take(100))
                 println(it.length)
-            }*/)
+            }*/
+            )
 
             val length = ('A' + halfTransSequence).asSequence().zipWithNext { prevC, c ->
                 otherHalfTransforms.getValue(prevC to c).length.toLong()
