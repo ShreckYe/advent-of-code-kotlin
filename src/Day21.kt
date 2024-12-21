@@ -190,6 +190,7 @@ fun main() {
                                 //if (iDirection == prevResultLastDirection) {
                                 resultLastDirection = jDirection
                                 iDSequence + jDSequence
+                                // using this branch doesn't work
                                 /*} else {
                                     resultLastDirection = iDirection
                                     jDSequence + iDSequence
