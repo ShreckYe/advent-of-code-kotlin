@@ -254,7 +254,7 @@ fun main() {
                 otherHalfTransforms.getValue(prevC to c).length.toLong()
             }.sum()
 
-            length/*.also { println(it) }*/ * it.removeSuffix("A").toInt()/*.also { println(it) }*/
+            length/*.also { println(it) }*/ * it.removeSuffix("A").toLong()/*.also { println(it) }*/
         }
 
         return ans
