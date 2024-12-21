@@ -169,11 +169,11 @@ fun main() {
                         } else {
                             // This seems not important anymore
                             if (numStepsIDButtonToA < numStepsJDButtonToA) {
-                                resultLastDirection = iDirection
-                                jDSequence + iDSequence
-                            } else if (numStepsIDButtonToA > numStepsJDButtonToA) {
                                 resultLastDirection = jDirection
                                 iDSequence + jDSequence
+                            } else if (numStepsIDButtonToA > numStepsJDButtonToA) {
+                                resultLastDirection = iDirection
+                                jDSequence + iDSequence
                             } else {
                                 /*
                                 // The below is not true for the numerical keypad.
