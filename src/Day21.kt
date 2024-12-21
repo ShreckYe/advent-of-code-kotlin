@@ -64,8 +64,11 @@ fun main() {
     fun String.numericToDirectionalControlSequences() =
         directionalControlSequences(numericPositionMap, 'A', 0)
 
+    fun String.directionalToDirectionalControlSequences(prevC: Char) =
+        directionalControlSequences(directionalPositionMap, prevC, 0)
+
     fun String.directionalToDirectionalControlSequences() =
-        directionalControlSequences(directionalPositionMap, 'A', 0)
+        directionalToDirectionalControlSequences('A')
 
     suspend fun Flow<Char>.concatToString() =
         toList().joinToString("")
@@ -213,6 +216,7 @@ fun main() {
             directionalBestDirectionalControlSequence()/*.also { println(it.length) }*/
                 .directionalTransforms(num - 1)
 
+    // WA
     fun part2(input: List<String>, numRobotDirectionalKeypads: Int): Int {
         val ans = input.sumOf {
             //println(it)
@@ -227,6 +231,7 @@ fun main() {
         return ans
     }
 
+    // WA
     fun part2Optimized(input: List<String>, numRobotDirectionalKeypads: Int): Long {
         fun String.directionalBestDirectionalControlSequence(prevC: Char) =
             bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, prevC, null, 0)
@@ -274,6 +279,26 @@ fun main() {
         }
 
         return ans
+    }
+
+    fun part2Optimized2(input: List<String>, numRobotDirectionalKeypads: Int): Long {
+        fun minLengthControlSequences(n: Int): Map<Pair<Char, Char>, List<String>> =
+            if (n == 0)
+                (directionalChars cartesianProduct directionalChars).associateWith { (_, c) -> listOf(c.toString()) }
+            else {
+                val halfNSequences = minLengthControlSequences(n / 2)
+                val doubleHalfNSequences = halfNSequences.mapValues {
+                    it.value.flatMap { s ->
+                        (sequenceOf('A') + s.asSequence()).zipWithNext { prevC, c ->
+                            // This is not working, assuming each map value is a list of n elements and the length is l, the complexity is n ^ l.
+                            halfNSequences[prevC to c]
+                        }
+                    }
+                }
+
+                TODO()
+            }
+        TODO()
     }
 
     // Test if implementation meets criteria from the description, like:
