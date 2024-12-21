@@ -95,12 +95,12 @@ fun main() {
 
     // Or read a large test input from the `src/Day21_test.txt` file:
     val testInput = readInput("Day21_test")
-    check(part1(testInput) == 126384)
+    check(measureTimeAndPrint { part1(testInput) } == 126384)
 
     // Read the input from the `src/Day21.txt` file.
     val input = readInput("Day21")
-    part1(input).println()
+    measureTimeAndPrint { part1(input) }.println()
 
-    check(part2(testInput) == 1) // TODO note that the test input might be different
+    //check(part2(testInput) == 1)
     part2(input).println()
 }
