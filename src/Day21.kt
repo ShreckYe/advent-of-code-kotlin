@@ -186,13 +186,14 @@ fun main() {
                                 // always prefer right first for it's possible that it doesn't change direction
                                 */
 
-                                if (iDirection == prevResultLastDirection) {
-                                    resultLastDirection = jDirection
-                                    iDSequence + jDSequence
-                                } else {
+                                // TODO The answer is correct after removing the judgement here! But why?
+                                //if (iDirection == prevResultLastDirection) {
+                                resultLastDirection = jDirection
+                                iDSequence + jDSequence
+                                /*} else {
                                     resultLastDirection = iDirection
                                     jDSequence + iDSequence
-                                }
+                                }*/
                             }
                         }
                 }
