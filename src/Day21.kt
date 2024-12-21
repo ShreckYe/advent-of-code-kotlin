@@ -222,6 +222,7 @@ fun main() {
     measureTimeAndPrint { part1(input) }.println()
 
     check(part2(testInput, 2).also { println(it) } == 126384)
+    // The length ratio after one transformation is about 2.5
     part2(input, 10)
     part2(input, 25).println()
 }
