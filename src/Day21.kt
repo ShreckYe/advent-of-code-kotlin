@@ -75,7 +75,7 @@ fun main() {
         val ans = runBlocking(Dispatchers.Default) {
             input.map {
                 async {
-                    val shortestLength = it.numericToDirectionalControlSequences().flatMapConcat {
+                    val shortestLength = it.numericToDirectionalControlSequences().flatMapMerge {
                         it.directionalToDirectionalControlSequences().flatMapConcat {
                             it.directionalToDirectionalControlSequences()
                         }
