@@ -1,3 +1,5 @@
+import kotlin.math.abs
+
 /**
  * Note that this is coordinated like a matrix, with [i] indicating the row counting from top, and [j] indicating the column counting from left.
  */
@@ -10,8 +12,10 @@ interface PositionOrPositionDiff<T : PositionOrPositionDiff<T>> : Comparable<T> 
             else -> iCompareTo
         }
 
-    fun posSum() =
+    fun coordinateSum() =
         i + j
+    fun coordinateAbsSum() =
+        abs(i) + abs(j)
 }
 
 data class Position(override val i: Int, override val j: Int) : PositionOrPositionDiff<Position> {
@@ -36,7 +40,7 @@ data class PositionDiff(override val i: Int, override val j: Int) : PositionOrPo
 
 object DiagonalComparator : Comparator<PositionOrPositionDiff<*>> {
     override fun compare(o1: PositionOrPositionDiff<*>, o2: PositionOrPositionDiff<*>): Int {
-        return o1.posSum() compareTo o2.posSum()
+        return o1.coordinateSum() compareTo o2.coordinateSum()
     }
 }
 
