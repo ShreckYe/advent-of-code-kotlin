@@ -210,18 +210,21 @@ fun main() {
         if (num == 0)
             this
         else
-            directionalBestDirectionalControlSequence()/*.also { println(it.length) }*/
+            directionalBestDirectionalControlSequence().also { println(it.length) }
                 .directionalTransforms(num - 1)
 
     fun part2(input: List<String>, numRobotDirectionalKeypads: Int): Int {
         val ans = input.sumOf {
-            //println(it)
+            println(it)
 
             val finalControlSequence =
-                it.numericalBestDirectionalControlSequence()/*.also { println(it) }*/
+                it.numericalBestDirectionalControlSequence().also { println(it) }
                     .directionalTransforms(numRobotDirectionalKeypads)
 
-            finalControlSequence.length/*.also { println(it) }*/ * it.removeSuffix("A").toInt()/*.also { println(it) }*/
+            if (it == "379A")
+                println("$it: $finalControlSequence")
+
+            finalControlSequence.length.also { println(it) } * it.removeSuffix("A").toInt().also { println(it) }
         }
 
         return ans
@@ -287,7 +290,7 @@ fun main() {
     val input = readInput("Day21")
     measureTimeAndPrint { part1(input) }.println()
 
-    //check(part2(testInput, 2).also { println(it) } == 126384)
+    check(part2(testInput, 2).also { println(it) } == 126384)
 
     // The length ratio after one transformation is about 2.5
     //part2(input, 10)
