@@ -18,9 +18,9 @@ fun main() {
     // see commit 4b2e19849f6e17c4786a55577da5568ef92c5f11 for a version using `Flow<Flow<Char>>`
     fun String.directionalControlSequences(
         positionMap: Map<Char, Position>, prevC: Char, from: Int
-    ): Flow<String> =
+    ): List<String> =
         if (from == length)
-            flowOf("")
+            listOf("")
         else if (from < length) {
             val c = this[from]
             //acc.flatMapConcat {
@@ -48,7 +48,7 @@ fun main() {
             val directionalSequences =
                 directionss.map { (it.asSequence().map { it.toChar() } + 'A').joinToString("") }
 
-            directionalSequences.asFlow().flatMapConcat { currentDirectionals ->
+            directionalSequences.flatMap{ currentDirectionals ->
                 directionalControlSequences(positionMap, c, from + 1).map { remainingDirectionals ->
                     currentDirectionals + remainingDirectionals
                 }
@@ -66,17 +66,19 @@ fun main() {
     fun String.directionalToDirectionalControlSequences(prevC: Char = 'A', from: Int = 0) =
         directionalControlSequences(directionalPositionMap, prevC, from)
 
+    // not used anymore
     suspend fun Flow<Char>.concatToString() =
         toList().joinToString("")
 
+    // not used anymore
     suspend fun <T : Comparable<T>> Flow<T>.min() =
         reduce { a, b -> if (a <= b) a else b }
 
     fun part1(input: List<String>): Int {
         val ans = runBlocking {
             input.sumOf {
-                val shortestLength = it.numericToDirectionalControlSequences().flatMapConcat {
-                    it.directionalToDirectionalControlSequences().flatMapConcat {
+                val shortestLength = it.numericToDirectionalControlSequences().flatMap {
+                    it.directionalToDirectionalControlSequences().flatMap {
                         it.directionalToDirectionalControlSequences()
                     }
                 }
