@@ -1,6 +1,5 @@
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun main() {
@@ -73,18 +72,22 @@ fun main() {
         reduce { a, b -> if (a <= b) a else b }
 
     fun part1(input: List<String>): Int {
-        val ans = runBlocking {
-            input.sumOf {
-                val shortestLength = it.numericToDirectionalControlSequences().flatMapConcat {
-                    it.directionalToDirectionalControlSequences().flatMapConcat {
-                        it.directionalToDirectionalControlSequences()
+        val ans = runBlocking(Dispatchers.Default) {
+            input.map {
+                async {
+                    val shortestLength = it.numericToDirectionalControlSequences().flatMapConcat {
+                        it.directionalToDirectionalControlSequences().flatMapConcat {
+                            it.directionalToDirectionalControlSequences()
+                        }
                     }
-                }
-                    .map { it.count() }
-                    .min()
+                        .map { it.count() }
+                        .min()
 
-                shortestLength * it.removeSuffix("A").toInt()
+                    shortestLength * it.removeSuffix("A").toInt()
+                }
             }
+                .awaitAll()
+                .sum()
         }
 
         return ans
