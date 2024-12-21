@@ -15,11 +15,12 @@ fun main() {
         directionalCharss.positionOf(it)
     }
 
+    // see commit 4b2e19849f6e17c4786a55577da5568ef92c5f11 for a version using `Flow<Flow<Char>>`
     fun String.directionalControlSequences(
         positionMap: Map<Char, Position>, prevC: Char, from: Int
-    ): Flow<Flow<Char>> =
+    ): Flow<String> =
         if (from == length)
-            flowOf(emptyFlow())
+            flowOf("")
         else if (from < length) {
             val c = this[from]
             //acc.flatMapConcat {
@@ -44,9 +45,12 @@ fun main() {
                         .all { numericCharss[it] !== null }
                 }
 
-            directionss.asFlow().flatMapConcat { currentDirections ->
+            val directionalSequences =
+                directionss.map { (it.asSequence().map { it.toChar() } + 'A').joinToString("") }
+
+            directionalSequences.asFlow().flatMapConcat { currentDirectionals ->
                 directionalControlSequences(positionMap, c, from + 1).map { remainingDirectionals ->
-                    currentDirections.map { it.toChar() }.asFlow() + 'A' + remainingDirectionals
+                    currentDirectionals + remainingDirectionals
                 }
             }
             //}
@@ -56,10 +60,10 @@ fun main() {
 
     fun String.numericToDirectionalControlSequences(
         prevC: Char = 'A', /*acc: Flow<Flow<Char>> = flowOf(emptyFlow()),*/ from: Int = 0
-    ): Flow<Flow<Char>> =
+    ) =
         directionalControlSequences(numericPositionMap, prevC, from)
 
-    fun String.directionalToDirectionalControlSequences(prevC: Char = 'A', from: Int = 0): Flow<Flow<Char>> =
+    fun String.directionalToDirectionalControlSequences(prevC: Char = 'A', from: Int = 0) =
         directionalControlSequences(directionalPositionMap, prevC, from)
 
     suspend fun Flow<Char>.concatToString() =
@@ -72,8 +76,8 @@ fun main() {
         val ans = runBlocking {
             input.sumOf {
                 val shortestLength = it.numericToDirectionalControlSequences().flatMapConcat {
-                    it.concatToString().directionalToDirectionalControlSequences().flatMapConcat {
-                        it.concatToString().directionalToDirectionalControlSequences()
+                    it.directionalToDirectionalControlSequences().flatMapConcat {
+                        it.directionalToDirectionalControlSequences()
                     }
                 }
                     .map { it.count() }
