@@ -271,7 +271,7 @@ fun main() {
     val input = readInput("Day21")
     measureTimeAndPrint { part1(input) }.println()
 
-    check(part2(testInput, 2).also { println(it) } == 126384)
+    check(part2(testInput, 2)/*.also { println(it) }*/ == 126384)
 
     // The length ratio after one transformation is about 2.5
     //part2(input, 10)
@@ -279,7 +279,8 @@ fun main() {
     //part2(input, 25).println()
 
 
-    check(part2Optimized(testInput, 2).also { println(it) } == 126384L)
+    check(part2Optimized(testInput, 2)/*.also { println(it) }*/ == 126384L)
+    check(part2Optimized(input, 2)/*.also { println(it) }*/ == 128962L)
 
     part2Optimized(input, 25).also {
         println("Part 2 ans:")
