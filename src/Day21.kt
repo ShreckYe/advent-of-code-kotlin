@@ -98,14 +98,15 @@ fun main() {
 
     val directionalCharAPosition = directionalPositionMap.getValue('A')
 
-    fun String.bestDirectionalControlSequence(
+    tailrec fun String.bestDirectionalControlSequence(
+        acc: StringBuilder,
         keypad: List<List<Char?>>,
         positionMap: Map<Char, Position>,
         prevC: Char, /*prevResultLastDirection: Direction?,*/
         from: Int
     ): String =
         if (from == length)
-            ""
+            acc.toString()
         else if (from < length) {
             val c = this[from]
 
@@ -177,33 +178,31 @@ fun main() {
                 }
             }
 
-            currentSequenceWithoutA + 'A' + bestDirectionalControlSequence(
-                keypad, positionMap,
-                c, /*resultLastDirection,*/
-                from + 1
-            )
+            acc.append(currentSequenceWithoutA).append('A')
+            bestDirectionalControlSequence(acc, keypad, positionMap, c, /*resultLastDirection,*/from + 1)
         } else
             throw AssertionError()
 
     fun String.numericalBestDirectionalControlSequence() =
-        bestDirectionalControlSequence(numericCharss, numericPositionMap, 'A', 0)
+        bestDirectionalControlSequence(StringBuilder(), numericCharss, numericPositionMap, 'A', 0)
 
     fun String.directionalBestDirectionalControlSequence() =
-        bestDirectionalControlSequence(directionalCharss, directionalPositionMap, 'A', 0)
+        bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, 'A', 0)
 
     fun part2(input: List<String>, numRobotDirectionalKeypads: Int): Int {
         val ans = input.sumOf {
             fun String.directionalTransforms(num: Int): String =
-                if (num == 0)
+                (if (num == 0)
                     this
                 else
-                    directionalBestDirectionalControlSequence().directionalTransforms(num - 1)
+                    directionalBestDirectionalControlSequence().also { println(it.length) }
+                        .directionalTransforms(num - 1))
 
-            //println(it)
+            println(it)
 
             val finalControlSequence =
-                it.numericalBestDirectionalControlSequence()//.also { println(it) }
-                    .directionalTransforms(numRobotDirectionalKeypads)//.also { println(it) }
+                it.numericalBestDirectionalControlSequence().also { println(it) }
+                    .directionalTransforms(numRobotDirectionalKeypads)
 
             finalControlSequence.length.also { println(it) } * it.removeSuffix("A").toInt().also { println(it) }
         }
@@ -222,8 +221,7 @@ fun main() {
     val input = readInput("Day21")
     measureTimeAndPrint { part1(input) }.println()
 
-    check(part2(testInput, 2).also {
-        println(it)
-    } == 126384)
+    check(part2(testInput, 2).also { println(it) } == 126384)
+    part2(input, 10)
     part2(input, 25).println()
 }
