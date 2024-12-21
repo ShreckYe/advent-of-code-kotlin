@@ -61,13 +61,11 @@ fun main() {
             throw AssertionError()
 
 
-    fun String.numericToDirectionalControlSequences(
-        prevC: Char = 'A', /*acc: Flow<Flow<Char>> = flowOf(emptyFlow()),*/ from: Int = 0
-    ) =
-        directionalControlSequences(numericPositionMap, prevC, from)
+    fun String.numericToDirectionalControlSequences() =
+        directionalControlSequences(numericPositionMap, 'A', 0)
 
-    fun String.directionalToDirectionalControlSequences(prevC: Char = 'A', from: Int = 0) =
-        directionalControlSequences(directionalPositionMap, prevC, from)
+    fun String.directionalToDirectionalControlSequences() =
+        directionalControlSequences(directionalPositionMap, 'A', 0)
 
     suspend fun Flow<Char>.concatToString() =
         toList().joinToString("")
@@ -99,6 +97,7 @@ fun main() {
 
     val directionalCharAPosition = directionalPositionMap.getValue('A')
 
+    // This algorithm may or may not be incorrect for the numerical keypad.
     tailrec fun String.bestDirectionalControlSequence(
         acc: StringBuilder,
         keypad: List<List<Char?>>,
@@ -251,29 +250,27 @@ fun main() {
         val otherHalfTransforms = transformsMap(numOtherHalf)
 
         @Suppress("ConvertToStringTemplate")
-        val ans = input.sumOf {
-            val firstControlSequence = it.numericalBestDirectionalControlSequence()
+        val ans = runBlocking {
+            input.sumOf {
+                val firstControlSequences = it.numericToDirectionalControlSequences().toList()
+                //val minLength = firstControlSequences.minOf { it.length }
+                val length = firstControlSequences
+                    //.filter { it.length == minLength }
+                    .minOf { firstControlSequence ->
+                        //println(it)
 
-            //println(it)
+                        val halfTransSequence = ('A' + firstControlSequence).asSequence().zipWithNext { prevC, c ->
+                            halfTransforms.getValue(prevC to c)
+                        }.joinToString("")
+                        assert(halfTransSequence == firstControlSequence.directionalTransforms(numHalf))
 
-            val halfTransSequence = ('A' + firstControlSequence).asSequence().zipWithNext { prevC, c ->
-                halfTransforms.getValue(prevC to c)
-            }.joinToString("")
-            assert(
-                halfTransSequence/*.also {
-                println(it.take(100))
-                println(it.length)
-            }*/ == firstControlSequence.directionalTransforms(numHalf)/*.also {
-                println(it.take(100))
-                println(it.length)
-            }*/
-            )
+                        ('A' + halfTransSequence).asSequence().zipWithNext { prevC, c ->
+                            otherHalfTransforms.getValue(prevC to c).length.toLong()
+                        }.sum()
+                    }
 
-            val length = ('A' + halfTransSequence).asSequence().zipWithNext { prevC, c ->
-                otherHalfTransforms.getValue(prevC to c).length.toLong()
-            }.sum()
-
-            length/*.also { println(it) }*/ * it.removeSuffix("A").toLong()/*.also { println(it) }*/
+                length/*.also { println(it) }*/ * it.removeSuffix("A").toLong()/*.also { println(it) }*/
+            }
         }
 
         return ans
