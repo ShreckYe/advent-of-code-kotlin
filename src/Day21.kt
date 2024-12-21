@@ -1,5 +1,6 @@
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.math.BigInteger
 import kotlin.math.abs
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -211,7 +212,7 @@ fun main() {
         return ans
     }
 
-    fun part2Optimized(input: List<String>, numRobotDirectionalKeypads: Int): Long {
+    fun part2Optimized(input: List<String>, numRobotDirectionalKeypads: Int): BigInteger {
         fun String.directionalBestDirectionalControlSequence(prevC: Char) =
             bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, prevC, 0)
 
@@ -233,8 +234,11 @@ fun main() {
         val halfTransforms = transformsMap(numHalf)
         val otherHalfTransforms = transformsMap(numOtherHalf)
 
+        fun Sequence<BigInteger>.sum() =
+            reduce { a, b -> a + b }
+
         @Suppress("ConvertToStringTemplate")
-        val ans = input.sumOf {
+        val ans = input.asSequence().map {
             val firstControlSequence = it.numericalBestDirectionalControlSequence()
 
             //println(it)
@@ -242,20 +246,22 @@ fun main() {
             val halfTransSequence = ('A' + firstControlSequence).asSequence().zipWithNext { prevC, c ->
                 halfTransforms.getValue(prevC to c)
             }.joinToString("")
-            assert(halfTransSequence/*.also {
+            assert(
+                halfTransSequence/*.also {
                 println(it.take(100))
                 println(it.length)
             }*/ == firstControlSequence.directionalTransforms(numHalf)/*.also {
                 println(it.take(100))
                 println(it.length)
-            }*/)
+            }*/
+            )
 
             val length = ('A' + halfTransSequence).asSequence().zipWithNext { prevC, c ->
-                otherHalfTransforms.getValue(prevC to c).length.toLong()
+                otherHalfTransforms.getValue(prevC to c).length.toBigInteger()
             }.sum()
 
-            length/*.also { println(it) }*/ * it.removeSuffix("A").toLong()/*.also { println(it) }*/
-        }
+            length/*.also { println(it) }*/ * it.removeSuffix("A").toBigInteger()/*.also { println(it) }*/
+        }.sum()
 
         return ans
     }
@@ -279,8 +285,8 @@ fun main() {
     //part2(input, 25).println()
 
 
-    check(part2Optimized(testInput, 2)/*.also { println(it) }*/ == 126384L)
-    check(part2Optimized(input, 2)/*.also { println(it) }*/ == 128962L)
+    check(part2Optimized(testInput, 2)/*.also { println(it) }*/ == 126384.toBigInteger())
+    check(part2Optimized(input, 2)/*.also { println(it) }*/ == 128962.toBigInteger())
 
     part2Optimized(input, 25).also {
         println("Part 2 ans:")
