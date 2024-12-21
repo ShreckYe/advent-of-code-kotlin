@@ -11,6 +11,7 @@ fun main() {
     }
 
     val directionalCharss = listOf(listOf(null, '^', 'A'), listOf('<', 'v', '>'))
+    val directionalChars = directionalCharss.flatMap { it.filterNotNull() }
     val directionalPositionMap = (directionChars + 'A').associateWith {
         directionalCharss.positionOf(it)
     }
@@ -189,22 +190,71 @@ fun main() {
     fun String.directionalBestDirectionalControlSequence() =
         bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, 'A', 0)
 
+    fun String.directionalTransforms(num: Int): String =
+        if (num == 0)
+            this
+        else
+            directionalBestDirectionalControlSequence()/*.also { println(it.length) }*/
+                .directionalTransforms(num - 1)
+
     fun part2(input: List<String>, numRobotDirectionalKeypads: Int): Int {
         val ans = input.sumOf {
-            fun String.directionalTransforms(num: Int): String =
-                (if (num == 0)
-                    this
-                else
-                    directionalBestDirectionalControlSequence().also { println(it.length) }
-                        .directionalTransforms(num - 1))
-
-            println(it)
+            //println(it)
 
             val finalControlSequence =
-                it.numericalBestDirectionalControlSequence().also { println(it) }
+                it.numericalBestDirectionalControlSequence()/*.also { println(it) }*/
                     .directionalTransforms(numRobotDirectionalKeypads)
 
-            finalControlSequence.length.also { println(it) } * it.removeSuffix("A").toInt().also { println(it) }
+            finalControlSequence.length/*.also { println(it) }*/ * it.removeSuffix("A").toInt()/*.also { println(it) }*/
+        }
+
+        return ans
+    }
+
+    fun part2Optimized(input: List<String>, numRobotDirectionalKeypads: Int): Long {
+        fun String.directionalBestDirectionalControlSequence(prevC: Char) =
+            bestDirectionalControlSequence(StringBuilder(), directionalCharss, directionalPositionMap, prevC, 0)
+
+        fun String.directionalTransforms(prevC: Char, num: Int): String =
+            if (num == 0)
+                this
+            else
+                directionalBestDirectionalControlSequence(prevC)/*.also { println(it.length) }*/
+                    .directionalTransforms(num - 1) // do not pass `prevC` recursively but use `A`
+
+        fun transformsMap(num: Int) = directionalChars.asSequence().flatMap { prevC ->
+            directionalChars.asSequence().map { c ->
+                (prevC to c) to c.toString().directionalTransforms(prevC, num)
+            }
+        }.toMap()
+
+        val numHalf = numRobotDirectionalKeypads / 2
+        val numOtherHalf = numRobotDirectionalKeypads - numHalf
+        val halfTransforms = transformsMap(numHalf)
+        val otherHalfTransforms = transformsMap(numOtherHalf)
+
+        @Suppress("ConvertToStringTemplate")
+        val ans = input.sumOf {
+            val firstControlSequence = it.numericalBestDirectionalControlSequence()
+
+            //println(it)
+
+            val halfTransSequence = ('A' + firstControlSequence).asSequence().zipWithNext { prevC, c ->
+                halfTransforms.getValue(prevC to c)
+            }.joinToString("")
+            assert(halfTransSequence/*.also {
+                println(it.take(100))
+                println(it.length)
+            }*/ == firstControlSequence.directionalTransforms(numHalf)/*.also {
+                println(it.take(100))
+                println(it.length)
+            }*/)
+
+            val length = ('A' + halfTransSequence).asSequence().zipWithNext { prevC, c ->
+                otherHalfTransforms.getValue(prevC to c).length.toLong()
+            }.sum()
+
+            length/*.also { println(it) }*/ * it.removeSuffix("A").toInt()/*.also { println(it) }*/
         }
 
         return ans
@@ -222,8 +272,16 @@ fun main() {
     measureTimeAndPrint { part1(input) }.println()
 
     check(part2(testInput, 2).also { println(it) } == 126384)
+
     // The length ratio after one transformation is about 2.5
-    part2(input, 10)
+    //part2(input, 10)
     // And the result length for an input will be about 1e11
-    part2(input, 25).println()
+    //part2(input, 25).println()
+
+
+    check(part2Optimized(testInput, 2).also { println(it) } == 126384L)
+
+    part2Optimized(input, 25).also {
+        println("Part 2 ans:")
+    }.println()
 }
