@@ -31,7 +31,39 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        return input.size
+        val secretNumbers = input.map { it.toLong() }
+
+        val sequenceToPriceMap = secretNumbers.map {
+            //println(it)
+            val secretNumberSequence = (0 until 2000).scan(it) { acc, _ -> acc.next() }/*.also {
+                println(it)
+                println(it.size)
+            }*/
+            val onesDigits = secretNumberSequence.map { it.toInt() % 10 }/*.also {
+                println(it)
+                println(it.size)
+            }*/
+            val changes = onesDigits.zipWithNext { a, b -> b - a }//.also { println(it) }
+
+            //println()
+
+            changes.asSequence().windowed(4)
+                .mapIndexed { i, sequence ->
+                    sequence to onesDigits[i + 4]
+                }
+                .groupBy { it.first }
+                // So, if you gave the monkey that sequence of changes, it would wait until the first time it sees that sequence and then immediately sell your hiding spot information at the current price, winning you 6 bananas.
+                .mapValues { it.value.first().second }
+        }
+
+        val numTotalBananas = sequenceToPriceMap.flatMap { it.entries }
+            .groupBy { it.key }
+            .entries
+            .map { it.value.sumOf { it.value } }
+
+        val ans = numTotalBananas.max()
+
+        return ans
     }
 
     // Test if implementation meets criteria from the description, like:
@@ -48,6 +80,7 @@ fun main() {
     val input = readInput("Day22")
     part1(input).println()
 
-    check(part2(testInput) == 1) // TODO note that the test input might be different
+    val testInput2 = readInput("Day22_test2")
+    check(part2(testInput2)/*.also { println(it) }*/ == 23)
     part2(input).println()
 }
