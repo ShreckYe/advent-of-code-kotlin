@@ -10,23 +10,27 @@ fun main() {
             .groupBy { it.first }
             .mapValues { it.value.map { it.second } }
 
-        println(connectionMap)
+        //println(connectionMap)
 
         val sets = connectionMap.asSequence()
-            .mapNotNull {
+            .flatMap {
                 val connecteds = it.value
-                if (connecteds.size == 2 && (connectionMap[connecteds[0]]?.contains(connecteds[1]) ?: false))
-                    setOf(it.key) + connecteds
-                else
-                    null
+                connecteds.asSequence().flatMap { second ->
+                    connecteds.asSequence().mapNotNull { third ->
+                        if (connectionMap[second]?.contains(third) == true)
+                            setOf(it.key, second, third)
+                        else
+                            null
+                    }
+                }
             }
-            .also { println(it.toList()) }
+            //.also { println(it.toList()) }
             .distinct()
-            .also { println(it.toList()) }
+            //.also { println(it.toList()) }
             .filter {
                 it.any { it[0] == 't' }
             }
-            .also { println(it.toList()) }
+            //.also { println(it.toList()) }
             .toSet()
 
         return sets.size
@@ -41,7 +45,7 @@ fun main() {
 
     // Or read a large test input from the `src/Day23_test.txt` file:
     val testInput = readInput("Day23_test")
-    check(part1(testInput).also { println(it) } == 7)
+    check(part1(testInput)/*.also { println(it) }*/ == 7)
 
     // Read the input from the `src/Day23.txt` file.
     val input = readInput("Day23")
