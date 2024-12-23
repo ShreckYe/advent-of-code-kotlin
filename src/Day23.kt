@@ -36,8 +36,46 @@ fun main() {
         return sets.size
     }
 
-    fun part2(input: List<String>): Int {
-        return input.size
+    fun part2(input: List<String>): String {
+        val connections = input.map {
+            with(it.split('-')) {
+                this[0] to this[1]
+            }
+        }
+
+        val connectionMap = (connections + connections.map { it.second to it.first })
+            .groupBy { it.first }
+            .mapValues { it.value.map { it.second }.toSet() }
+
+        //println(connectionMap)
+
+        val setsOfSizes = Array<Set<Set<String>>?>(connectionMap.size + 1) { null }
+        //setsOfSizes[0] = emptySet() // doesn't work
+        setsOfSizes[1] = connectionMap.keys.asSequence().map { setOf(it) }.toSet()
+        var maxSize = 1
+        for (i in 1 until connectionMap.size) {
+            val sets = setsOfSizes[i]!!
+
+            val nextSet = sets.flatMap { set ->
+                set.flatMap { connectionMap.getValue(it) }.toSet()
+                    .asSequence()
+                    .filter {
+                        connectionMap.getValue(it).containsAll(set)
+                    }
+                    .map {
+                        set + it
+                    }
+            }.toSet()
+
+            if (nextSet.isEmpty())
+                break
+
+            setsOfSizes[i + 1] = nextSet
+            maxSize = i + 1
+        }
+
+        val ans = setsOfSizes[maxSize]!!.single().sorted().joinToString(",")
+        return ans
     }
 
     // Test if implementation meets criteria from the description, like:
@@ -51,6 +89,6 @@ fun main() {
     val input = readInput("Day23")
     part1(input).println()
 
-    check(part2(testInput) == 1) // TODO note that the test input might be different
+    check(part2(testInput) == "co,de,ka,ta")
     part2(input).println()
 }
