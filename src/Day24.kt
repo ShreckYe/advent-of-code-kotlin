@@ -371,6 +371,6 @@ fun main() {
     val input = readInput("Day24")
     part1(input).println()
 
-    //check(part2(testInput) == 1) // TODO note that the test input might be different
+    //check(part2(testInput) == 1)
     part2(input).println()
 }
