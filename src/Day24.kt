@@ -46,8 +46,11 @@ sealed class AdderOutput(val wire: String, val index: Int) {
 //data class AdderOutput(val type: AdderOutputType, val name: Int, val index: Int)
 
 fun main() {
-    class GateIn(val input1: String, val type: String, val input2: String)
-    class Gate(val gateIn: GateIn, val output: String)
+    data class GateIn(val input1: String, val type: String, val input2: String) {
+        val inputSet = setOf(input1, input2)
+    }
+
+    data class Gate(val gateIn: GateIn, val output: String)
 
     fun part1(input: List<String>): Long {
         val emptyLineIndex = input.indexOf("")
@@ -93,7 +96,7 @@ fun main() {
 
     val inputRegex = Regex("[xy]\\d\\d")
 
-    fun part2(input: List<String>): Int {
+    fun part2Incorrect(input: List<String>): Int {
         val emptyLineIndex = input.indexOf("")
         val inputWires = input.subList(0, emptyLineIndex).map {
             it.split(": ").let { it[0] to (it[1].toInt() == 1) }
@@ -174,6 +177,189 @@ fun main() {
         return TODO()
     }
 
+    @Suppress("UNCHECKED_CAST")
+    fun part2(input: List<String>): Int {
+        val emptyLineIndex = input.indexOf("")
+        val inputWires = input.subList(0, emptyLineIndex).map {
+            it.split(": ").let { it[0] to (it[1].toInt() == 1) }
+        }
+        val gates = input.subList(emptyLineIndex + 1, input.size).map {
+            it.split(" -> ").let {
+                Gate(it[0].split(" ").let { GateIn(it[0], it[1], it[2]) }, it[1])
+            }
+        }
+
+        /*
+        Regexes used:
+        find carries for inputs: .\d\d XOR .\d\d
+        check if their numbers are the same: .(\d\d) XOR .\1
+        find sums for inputs: .\d\d AND .\d\d
+        check if their numbers are the same: .(\d\d) AND .\1
+         */
+
+        var swapped = mutableListOf<String>()
+
+        val firstLayer = gates.filter {
+            it.gateIn.input1 matches inputRegex && it.gateIn.input2 matches inputRegex
+        }
+
+        println(firstLayer)
+
+        // There are no cases such as "x00 XOR y01" as checked by the regexes above.
+        fun GateIn.inputIndex() =
+            input1.substring(1).toInt().also {
+                assert(it == input2.substring(1).toInt())
+            }
+
+
+        //val twoSums = firstLayer.filter { it.gateIn.type == "XOR" }.associate { it.output to it.gateIn.inputIndex() }
+        //val twoSumCarries = firstLayer.filter { it.gateIn.type == "AND" }.associate { it.output to it.gateIn.inputIndex() }
+        //val firstLayerWires = twoSums.keys + twoSumCarries.keys
+
+        val twoSums =
+            firstLayer.asSequence()
+                .filter { it.gateIn.type == "XOR" }
+                .map { it.output to it.gateIn.inputIndex() }
+                .toList()
+        val twoSumCarries =
+            firstLayer.asSequence()
+                .filter { it.gateIn.type == "AND" }
+                .associate { it.output to it.gateIn.inputIndex() }
+                .toList()
+
+        println(twoSums.size)
+        println(twoSumCarries.size)
+        assert(twoSums.size == 45 && twoSumCarries.size == 45)
+        //println(firstLayerWires)
+
+        /*
+        val secondLayer = gates.filter {
+            it.gateIn.input1 in firstLayerWires || it.gateIn.input2 in firstLayerWires
+        }
+
+
+        secondLayer.filter { it.gateIn.input1 !in firstLayerWires }.println()
+        secondLayer.filter { it.gateIn.input2 !in firstLayerWires }.println()
+        secondLayer.filter { it.gateIn.input1 !in firstLayerWires }
+        */
+
+        val remainingGates = (gates - firstLayer.toSet()).groupBy { it.gateIn.type }
+        val threeSumGates = remainingGates.getValue("XOR")
+        val threeSumCarryGates = remainingGates.getValue("AND")
+        val carryGates = remainingGates.getValue("OR")
+
+        /*
+        val carries = remainingGates.getValue("OR")
+        carries.filter {  }
+
+        val threeSums = remainingGates.getValue("XOR")
+        threeSums.filter {
+            val gateIn = it.gateIn
+            gateIn.input1
+        }
+        */
+
+
+        //val remainingGateMap = remainingGates.mapValues { it.value.associateBy { it.output } }
+        val twoSumOutputWires = arrayOfNulls<String>(45).also {
+            for (twoSum in twoSums) {
+                it[twoSum.second] = twoSum.first
+            }
+        } as Array<String>
+        val twoSumCarryOutputWires = arrayOfNulls<String>(45).also {
+            for (twoSumCarry in twoSumCarries) {
+                it[twoSumCarry.second] = twoSumCarry.first
+            }
+        } as Array<String>
+
+        val threeSumOutputWires = arrayOfNulls<String>(45)
+        val threeSumCarryOutputWires = arrayOfNulls<String>(45)
+        val carryOutputWires = arrayOfNulls<String>(45)
+
+        threeSumOutputWires[0] = twoSumOutputWires[0]
+        threeSumCarryOutputWires[0] = null
+        carryOutputWires[0] = twoSumCarryOutputWires[0]
+
+        for (i in 1 until 45) {
+            var twoSumOutputWire = twoSumOutputWires[i]
+            var preCarryOutputWire = carryOutputWires[i - 1]!!
+            fun threeSumInputSet() = setOf(twoSumOutputWire, preCarryOutputWire)
+            var threeSumInputSet = threeSumInputSet()
+
+            var threeSumGate = threeSumGates.firstOrNull { it.gateIn.inputSet == threeSumInputSet }
+            //var threeSumCarryGate = threeSumCarryGates.firstOrNull { it.gateIn.inputSet == threeSumInputSet }
+
+            val expectedZWire = "z${i.toString().padStart(2, '0')}"
+
+            if (threeSumGate === null /*&& threeSumCarryGate === null*/) {
+                val threeSumGate = threeSumGates.single { twoSumOutputWire in it.gateIn.inputSet }
+                if (threeSumGate.output == expectedZWire) {
+                    val corrected = (threeSumGate.gateIn.inputSet - twoSumOutputWire).single()
+
+                    swapped.add(preCarryOutputWire)
+                    swapped.add(corrected)
+
+                    carryOutputWires[i - 1] = corrected
+                    preCarryOutputWire = corrected
+                } else {
+                    val threeSumGate = threeSumGates.single { preCarryOutputWire in it.gateIn.inputSet }
+                    if (threeSumGate.output == expectedZWire) {
+                        val corrected = (threeSumGate.gateIn.inputSet - preCarryOutputWire).single()
+
+                        swapped.add(twoSumOutputWire)
+                        swapped.add(corrected)
+
+                        twoSumOutputWires[i] = corrected
+                        twoSumOutputWire = corrected
+                    }
+                }
+            }
+
+            threeSumInputSet = threeSumInputSet()
+            threeSumGate = threeSumGates.single { it.gateIn.inputSet == threeSumInputSet }
+            if (threeSumGate.output != expectedZWire) {
+                swapped.add(threeSumGate.output)
+                swapped.add(expectedZWire)
+            }
+
+            threeSumOutputWires[i] = expectedZWire
+
+            val threeSumCarryGate = threeSumCarryGates.single { it.gateIn.inputSet == threeSumInputSet }
+            threeSumCarryOutputWires[i] = threeSumCarryGate.output
+
+            val carryGate = carryGates.firstOrNull { twoSumCarryOutputWires[i] in it.gateIn.inputSet }
+            // copied and not completely adapted yet
+            if (carryGate === null) {
+                val threeSumGate = threeSumGates.single { twoSumOutputWire in it.gateIn.inputSet }
+                if (threeSumGate.output == expectedZWire) {
+                    val corrected = (threeSumGate.gateIn.inputSet - twoSumOutputWire).single()
+
+                    swapped.add(preCarryOutputWire)
+                    swapped.add(corrected)
+
+                    carryOutputWires[i - 1] = corrected
+                    preCarryOutputWire = corrected
+                } else {
+                    val threeSumGate = threeSumGates.single { preCarryOutputWire in it.gateIn.inputSet }
+                    if (threeSumGate.output == expectedZWire) {
+                        val corrected = (threeSumGate.gateIn.inputSet - preCarryOutputWire).single()
+
+                        swapped.add(twoSumOutputWire)
+                        swapped.add(corrected)
+
+                        twoSumOutputWires[i] = corrected
+                        twoSumOutputWire = corrected
+                    }
+                }
+            }
+
+
+            remainingGates.getValue("OR")
+        }
+
+        return TODO()
+    }
+
     // Test if implementation meets criteria from the description, like:
     //check(part1(listOf("test_input")) == 1)
 
@@ -185,6 +371,6 @@ fun main() {
     val input = readInput("Day24")
     part1(input).println()
 
-    check(part2(testInput) == 1) // TODO note that the test input might be different
+    //check(part2(testInput) == 1) // TODO note that the test input might be different
     part2(input).println()
 }
