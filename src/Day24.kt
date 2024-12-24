@@ -360,6 +360,137 @@ fun main() {
         return TODO()
     }
 
+    fun part2Manually(input: List<String>): String {
+        val emptyLineIndex = input.indexOf("")
+        val inputWires = input.subList(0, emptyLineIndex).map {
+            it.split(": ").let { it[0] to (it[1].toInt() == 1) }
+        }
+
+        var gates = input.subList(emptyLineIndex + 1, input.size).map {
+            it.split(" -> ").let {
+                Gate(it[0].split(" ").let { GateIn(it[0], it[1], it[2]) }, it[1])
+            }
+        }
+
+        fun firstLayer() = gates.filter {
+            it.gateIn.input1 matches inputRegex && it.gateIn.input2 matches inputRegex
+        }
+
+        fun GateIn.inputIndex() =
+            input1.substring(1).toInt().also {
+                assert(it == input2.substring(1).toInt())
+            }
+
+
+        fun twoSumByOutputWire() =
+            firstLayer().filter { it.gateIn.type == "XOR" }.associate { it.output to it.gateIn.inputIndex() }
+
+        fun twoSumCarryByOutputWire() =
+            firstLayer().filter { it.gateIn.type == "AND" }.associate { it.output to it.gateIn.inputIndex() }
+
+        fun firstLayerWires() = twoSumByOutputWire().keys + twoSumCarryByOutputWire().keys
+
+        fun remainingGates() = gates - firstLayer().toSet()
+        fun remainingGateMap() = remainingGates().groupBy { it.gateIn.type }
+        fun threeSumGates() = remainingGateMap().getValue("XOR")
+        fun threeSumCarryGates() = remainingGateMap().getValue("AND")
+        fun carryGates() = remainingGateMap().getValue("OR")
+
+        fun String.renameIfPossible(wireIndices: Map<String, Int>, prefix: String) =
+            wireIndices[this]?.let { "$prefix${it.toString().padStart(2, '0')}($this)" } ?: this
+
+        fun String.renameTwoSumIfPossible() =
+            renameIfPossible(twoSumByOutputWire(), "2sum")
+
+        fun printThreeSums() =
+            println(threeSumGates().sortedBy { it.output }.joinToString("\n", postfix = "\n") {
+                it.gateIn.input1.renameTwoSumIfPossible() + " XOR " + it.gateIn.input2.renameTwoSumIfPossible() + " -> " + it.output
+            })
+        printThreeSums()
+
+        val swapPairs0 = listOf(
+            "fbq" to "z36", "pbv" to "z16", "qqp" to "z23"
+        )
+
+        fun List<Gate>.swap(swapPairs: List<Pair<String, String>>) =
+            map { gate ->
+                swapPairs.firstOrNull { it.first == gate.output }?.let {
+                    gate.copy(output = it.second)
+                } ?: swapPairs.firstOrNull { it.second == gate.output }?.let {
+                    gate.copy(output = it.first)
+                } ?: gate
+            }
+
+        gates = gates.swap(swapPairs0)
+        println("Swapped first time")
+        printThreeSums()
+
+        println(twoSumByOutputWire().filter { it.value == 11 })
+
+        val swapPair1 = "ncw" to "qff" /* 11 */
+
+        gates = gates.swap(listOf(swapPair1))
+        println("Swapped second time")
+
+        printThreeSums()
+
+        fun printThreeSumCarries() =
+            println(threeSumCarryGates().map {
+                it.copy(
+                    gateIn = it.gateIn.copy(
+                        input1 = it.gateIn.input1.renameTwoSumIfPossible(),
+                        input2 = it.gateIn.input2.renameTwoSumIfPossible()
+                    )
+                )
+            }.sortedBy { it.gateIn.inputSet.single { it.startsWith("2") } }.joinToString("\n", postfix = "\n") {
+                it.gateIn.input1 + " AND " + it.gateIn.input2 + " -> " + it.output
+            })
+        printThreeSumCarries()
+
+        fun String.renameTwoSumCarryIfPossible() =
+            renameIfPossible(twoSumCarryByOutputWire(), "2sumCarry")
+
+
+        fun threeSumCarryByOutputWire(): Map<String, Int> {
+            val twoSumByOutputWire = twoSumByOutputWire()
+            return threeSumCarryGates().mapNotNull { gate ->
+                twoSumByOutputWire[gate.gateIn.input1]?.let {
+                    gate.output /*gate.gateIn.input2*/ to it
+                } ?: twoSumByOutputWire[gate.gateIn.input2]?.let {
+                    gate.output /*gate.gateIn.input1*/ to it
+                }
+            }.toMap()
+        }
+
+        fun String.renameThreeSumCarryIfPossible() =
+            renameIfPossible(threeSumCarryByOutputWire(), "3sumCarry")
+
+        fun printCarries() =
+            println(carryGates().map {
+                it.copy(
+                    gateIn = it.gateIn.copy(
+                        input1 = it.gateIn.input1.renameTwoSumCarryIfPossible().renameThreeSumCarryIfPossible(),
+                        input2 = it.gateIn.input2.renameTwoSumCarryIfPossible().renameThreeSumCarryIfPossible()
+                    )
+                )
+            }.sortedBy { it.gateIn.inputSet.min() }.joinToString("\n", postfix = "\n") {
+                it.gateIn.input1 + " OR " + it.gateIn.input2 + " -> " + it.output
+            })
+        printCarries()
+
+
+        val swapPair2 = "qff" to "qnw"
+        gates = gates.swap(listOf(swapPair2))
+        println("Swapped third time")
+        printThreeSums()
+        printThreeSumCarries()
+        printCarries()
+
+
+        val swapPairs = swapPairs0 /*+ swapPair1*/ + swapPair2
+        return swapPairs.flatMap { it.toList() }.sorted().joinToString(",")
+    }
+
     // Test if implementation meets criteria from the description, like:
     //check(part1(listOf("test_input")) == 1)
 
@@ -372,5 +503,5 @@ fun main() {
     part1(input).println()
 
     //check(part2(testInput) == 1)
-    part2(input).println()
+    part2Manually(input).println()
 }
