@@ -427,12 +427,14 @@ fun main() {
 
         println(twoSumByOutputWire().filter { it.value == 11 })
 
+        /*
         val swapPair1 = "ncw" to "qff" /* 11 */
 
         gates = gates.swap(listOf(swapPair1))
         println("Swapped second time")
 
         printThreeSums()
+        */
 
         fun printThreeSumCarries() =
             println(threeSumCarryGates().map {
